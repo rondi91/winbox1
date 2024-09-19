@@ -1,25 +1,18 @@
 {
-    "1": {
-        "id": 2,
-        "name": "GX4",
-        "ip_address": "192.168.9.1",
-        "username": "rondi",
-        "password": "21184662"
-    },
-    "2": {
-        "id": 3,
-        "name": "GR3_OLD",
-        "ip_address": "192.168.255.20",
-        "username": "rondi",
-        "password": "21184662"
-    },
     "routers": {
         "1": {
             "id": 1,
             "name": "GX4",
             "ip_address": "192.168.9.1",
-            "username": "rondi",
-            "password": "21184662"
+            "username": "mikhmon",
+            "password": "1234"
+        },
+        "2": {
+            "id": 2,
+            "name": "rondiyanto",
+            "ip_address": "192.168.255.20",
+            "username": "mikhmon",
+            "password": "1234"
         }
     }
 }
