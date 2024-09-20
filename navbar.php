@@ -11,6 +11,9 @@
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="#">Home</a>
                 </li>
+                <li class="<?php echo ($current_page == 'manage_pppoe.php') ? 'active' : ''; ?>">
+                    <a href="manage_pppoe.php">Manage Routers</a>
+                </li>
                 <li class="<?php echo ($current_page == 'manage_routers.php') ? 'active' : ''; ?>">
                     <a href="manage_routers.php">Manage Routers</a>
                 </li>

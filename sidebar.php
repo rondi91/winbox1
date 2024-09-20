@@ -13,7 +13,12 @@
                     <a href="#">Stats</a>
                 </li>
             </ul>
+        
+        
         </li>
+        <li class="<?php echo ($current_page == 'manage_pppoe.php') ? 'active' : ''; ?>">
+                    <a href="manage_pppoe.php">Manage PPPOE</a>
+                </li>
         <li class="<?php echo ($current_page == 'manage_routers.php') ? 'active' : ''; ?>">
             <a href="manage_routers.php">Manage Routers</a>
         </li>
