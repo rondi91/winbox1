@@ -36,52 +36,11 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
     return !in_array($user['name'], $activeUserIds);
 });
 
-// Handle search for active users
-$activeSearchQuery = isset($_GET['activeSearch']) ? strtolower($_GET['activeSearch']) : '';
-if ($activeSearchQuery) {
-    $activeUsers = array_filter($activeUsers, function($user) use ($activeSearchQuery) {
-        return strpos(strtolower($user['name']), $activeSearchQuery) !== false;
-    });
-}
-
-// Handle search for inactive users
-$inactiveSearchQuery = isset($_GET['inactiveSearch']) ? strtolower($_GET['inactiveSearch']) : '';
-if ($inactiveSearchQuery) {
-    $inactiveUsers = array_filter($inactiveUsers, function($user) use ($inactiveSearchQuery) {
-        return strpos(strtolower($user['name']), $inactiveSearchQuery) !== false;
-    });
-}
-
 // Calculate totals
 $totalSecrets = count($allUsers);
 $totalActiveUsers = count($activeUsers);
 $totalInactiveUsers = count($inactiveUsers);
 
-// Get all profiles
-$profileQuery = new Query('/ppp/profile/print');
-$profiles = $client->query($profileQuery)->read(); // Fetch profiles with read()
-
-// Handle form submissions for editing users
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $action = $_POST['action'];
-
-    // Handle single user edit
-    if ($action === 'edit_single') {
-        $userId = $_POST['id'];
-        $newProfile = $_POST['profile'];
-
-        // Remove active connection for the user
-        $removeQuery = (new Query('/ppp/active/remove'))
-            ->equal('.id', $userId);
-        $client->query($removeQuery);
-
-        // Update user profile
-        $editQuery = (new Query('/ppp/secret/set'))
-            ->equal('.id', $userId)
-            ->equal('profile', $newProfile);
-        $client->query($editQuery);
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -118,11 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="tab-content mt-3" id="userTabContent">
             <!-- Active Users Tab -->
             <div class="tab-pane fade show active" id="activeUsers" role="tabpanel" aria-labelledby="active-tab">
-                <!-- Search for Active Users -->
-                <form method="GET" class="mb-4">
+                <!-- Live Search for Active Users -->
+                <form class="mb-4">
                     <div class="input-group">
-                        <input type="text" name="activeSearch" class="form-control" placeholder="Search Active Users by Username" value="<?php echo htmlspecialchars($activeSearchQuery); ?>">
-                        <button type="submit" class="btn btn-primary">Search</button>
+                        <input type="text" id="activeSearch" class="form-control" placeholder="Search Active Users by Username">
                     </div>
                 </form>
 
@@ -137,13 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="activeUsersTableBody">
                         <?php foreach ($activeUsers as $index => $user): ?>
                             <tr>
                                 <td><?php echo ($index + 1); ?></td>
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
-                                <!-- Find and display the profile by looking it up in allUsers -->
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
                                 <td>
                                     <!-- Edit Button (trigger modal) -->
@@ -162,11 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <!-- Inactive Users Tab -->
             <div class="tab-pane fade" id="inactiveUsers" role="tabpanel" aria-labelledby="inactive-tab">
-                <!-- Search for Inactive Users -->
-                <form method="GET" class="mb-4">
+                <!-- Live Search for Inactive Users -->
+                <form class="mb-4">
                     <div class="input-group">
-                        <input type="text" name="inactiveSearch" class="form-control" placeholder="Search Inactive Users by Username" value="<?php echo htmlspecialchars($inactiveSearchQuery); ?>">
-                        <button type="submit" class="btn btn-primary">Search</button>
+                        <input type="text" id="inactiveSearch" class="form-control" placeholder="Search Inactive Users by Username">
                     </div>
                 </form>
 
@@ -179,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <th>Profile</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="inactiveUsersTableBody">
                         <?php foreach ($inactiveUsers as $index => $user): ?>
                             <tr>
                                 <td><?php echo ($index + 1); ?></td>
@@ -225,7 +181,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Live Search for Active Users
+        $('#activeSearch').on('input', function() {
+            var query = $(this).val();
+            $.ajax({
+                url: 'search_users.php',
+                type: 'POST',
+                data: { searchType: 'active', searchQuery: query },
+                success: function(data) {
+                    $('#activeUsersTableBody').html(data);
+                }
+            });
+        });
+
+        // Live Search for Inactive Users
+        $('#inactiveSearch').on('input', function() {
+            var query = $(this).val();
+            $.ajax({
+                url: 'search_users.php',
+                type: 'POST',
+                data: { searchType: 'inactive', searchQuery: query },
+                success: function(data) {
+                    $('#inactiveUsersTableBody').html(data);
+                }
+            });
+        });
+
         // Trigger modal and pass data to it
         document.getElementById('editModal').addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
