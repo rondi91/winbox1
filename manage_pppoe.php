@@ -36,6 +36,22 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
     return !in_array($user['name'], $activeUserIds);
 });
 
+// Handle search for active users
+$activeSearchQuery = isset($_GET['activeSearch']) ? strtolower($_GET['activeSearch']) : '';
+if ($activeSearchQuery) {
+    $activeUsers = array_filter($activeUsers, function($user) use ($activeSearchQuery) {
+        return strpos(strtolower($user['name']), $activeSearchQuery) !== false;
+    });
+}
+
+// Handle search for inactive users
+$inactiveSearchQuery = isset($_GET['inactiveSearch']) ? strtolower($_GET['inactiveSearch']) : '';
+if ($inactiveSearchQuery) {
+    $inactiveUsers = array_filter($inactiveUsers, function($user) use ($inactiveSearchQuery) {
+        return strpos(strtolower($user['name']), $inactiveSearchQuery) !== false;
+    });
+}
+
 // Calculate totals
 $totalSecrets = count($allUsers);
 $totalActiveUsers = count($activeUsers);
@@ -102,6 +118,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="tab-content mt-3" id="userTabContent">
             <!-- Active Users Tab -->
             <div class="tab-pane fade show active" id="activeUsers" role="tabpanel" aria-labelledby="active-tab">
+                <!-- Search for Active Users -->
+                <form method="GET" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="activeSearch" class="form-control" placeholder="Search Active Users by Username" value="<?php echo htmlspecialchars($activeSearchQuery); ?>">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+
                 <h3>Active Users</h3>
                 <table class="table table-bordered">
                     <thead>
@@ -138,6 +162,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <!-- Inactive Users Tab -->
             <div class="tab-pane fade" id="inactiveUsers" role="tabpanel" aria-labelledby="inactive-tab">
+                <!-- Search for Inactive Users -->
+                <form method="GET" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="inactiveSearch" class="form-control" placeholder="Search Inactive Users by Username" value="<?php echo htmlspecialchars($inactiveSearchQuery); ?>">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+
                 <h3>Inactive Users</h3>
                 <table class="table table-bordered">
                     <thead>
