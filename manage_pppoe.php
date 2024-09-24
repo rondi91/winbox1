@@ -44,6 +44,7 @@ $newProfile = $_POST['profile'];
 // Step 1: Fetch the user .id from /ppp/secret
 $secretQuery = (new Query('/ppp/secret/print'))->where('name', $username);
 $userSecret = $client->query($secretQuery)->read();
+// var_dump($userSecret);
 
 // Ensure the user was found
 if (isset($userSecret[0]['.id'])) {
@@ -85,6 +86,21 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
 $totalSecrets = count($allUsers);
 $totalActiveUsers = count($activeUsers);
 $totalInactiveUsers = count($inactiveUsers);
+
+
+// Function to get traffic details for a PPPoE user by interface
+function getTrafficData($interface) {
+    global $client;
+
+    // Fetch traffic stats for the user's PPPoE interface
+    $trafficQuery = (new Query('/interface/monitor-traffic'))
+        ->equal('interface', $interface)
+        ->equal('once', true);
+    
+    $trafficData = $client->query($trafficQuery)->read();
+    
+    return $trafficData;
+}
 
 ?>
 
@@ -137,16 +153,25 @@ $totalInactiveUsers = count($inactiveUsers);
                             <th><a href="javascript:void(0)" onclick="sortTable(1, 'activeUsersTableBody')">Username</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(2, 'activeUsersTableBody')">IP Address</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(3, 'activeUsersTableBody')">Profile</a></th>
+                            <th>Details</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="activeUsersTableBody">
                         <?php foreach ($activeUsers as $index => $user): ?>
+                            <?php
+                            
+                            // var_dump($user['interface']);
+                            // die();
+                             ?>
                             <tr>
                                 <td><?php echo ($index + 1); ?></td>
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
+                                <td>
+                                    <button type="button" class="btn btn-info" onclick="fetchTrafficDetails('<?php echo htmlspecialchars($user['name']); ?>')">view traffic</button>
+                                </td>
                                 <td>
                                     <!-- Edit Button (trigger modal) -->
                                     <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
@@ -225,6 +250,22 @@ $totalInactiveUsers = count($inactiveUsers);
         </div>
     </div>
 
+    <!-- Traffic Details Modal -->
+    <div class="modal fade" id="trafficModal" tabindex="-1" aria-labelledby="trafficModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="trafficModalLabel">Traffic Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="trafficDetails"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -294,6 +335,34 @@ $totalInactiveUsers = count($inactiveUsers);
             var profileDropdown = modal.querySelector('#edit-profile');
             profileDropdown.value = profile;  // Set the dropdown to the user's current profile
         });
+
+         // Function to fetch and display traffic details
+function fetchTrafficDetails(username) {
+    $.ajax({
+        url: 'get_traffic_details.php',
+        type: 'POST',
+        data: { username: username },
+        success: function(data) {
+            let result = JSON.parse(data);
+            if (result.rx && result.tx) {
+                // Display RX and TX data if available
+                $('#trafficDetails').html(`
+                    <p>Rx: ${result.rx} Mbps</p>
+                    <p>Tx: ${result.tx} Mbps</p>
+                `);
+            } else if (result.error) {
+                // Display an error message if something went wrong
+                $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
+            }
+
+            $('#trafficModal').modal('show'); // Show the modal with traffic data
+        },
+        error: function() {
+            $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
+            $('#trafficModal').modal('show');
+        }
+    });
+}
     </script>
 </body>
 </html>
