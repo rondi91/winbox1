@@ -5,23 +5,24 @@ require 'config.php';          // Load the router configuration
 use RouterOS\Client;
 use RouterOS\Query;
 
+// Create the Mikrotik client using the configuration from config.php
 $client = new Client([
     'host' => $mikrotikConfig['host'],
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
 
-// Fetch PPPoE secrets (users)
+// Get all PPPoE secrets (users) using print and read()
 $secretQuery = new Query('/ppp/secret/print');
-$allUsers = $client->query($secretQuery)->read(); // Fetch all users
+$allUsers = $client->query($secretQuery)->read(); // Fetch users with read()
 
-// Fetch active PPPoE connections
+// Get all active PPPoE connections
 $activeQuery = new Query('/ppp/active/print');
-$activeUsers = $client->query($activeQuery)->read(); // Fetch active users
+$activeUsers = $client->query($activeQuery)->read(); // Fetch active users with read()
 
-// Fetch all profiles
+// Get all profiles
 $profileQuery = new Query('/ppp/profile/print');
-$profiles = $client->query($profileQuery)->read(); // Fetch profiles
+$profiles = $client->query($profileQuery)->read(); // Fetch profiles with read()
 
 // Function to find the profile of an active user by matching it with allUsers
 function findUserProfile($activeUserName, $allUsers) {
@@ -33,11 +34,57 @@ function findUserProfile($activeUserName, $allUsers) {
     return '-'; // Return '-' if no match is found
 }
 
+// Handle form submissions for editing users
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_single') {
+    $userId = $_POST['id'];
+   // Get the current user and new profile data from the POST request
+$username = $_POST['username'];
+$newProfile = $_POST['profile'];
+
+// Step 1: Fetch the user .id from /ppp/secret
+$secretQuery = (new Query('/ppp/secret/print'))->where('name', $username);
+$userSecret = $client->query($secretQuery)->read();
+
+// Ensure the user was found
+if (isset($userSecret[0]['.id'])) {
+    $userId = $userSecret[0]['.id'];
+
+    // Step 2: Update the user's profile using the .id from /ppp/secret
+    $editQuery = (new Query('/ppp/secret/set'))
+        ->equal('.id', $userId)
+        ->equal('profile', $newProfile);
+    
+    $response = $client->query($editQuery)->read();
+
+    // Step 3: Check if the user is currently active and remove the active connection if found
+    $activeQuery = (new Query('/ppp/active/print'))->where('name', $username);
+    $activeUser = $client->query($activeQuery)->read();
+
+    if (isset($activeUser[0]['.id'])) {
+        $activeUserId = $activeUser[0]['.id'];
+
+        // Remove the active connection
+        $removeActiveQuery = (new Query('/ppp/active/remove'))
+            ->equal('.id', $activeUserId);
+        $client->query($removeActiveQuery)->read();
+    }
+
+    echo "Profile updated and active connection removed (if any).";
+} else {
+    echo "User not found.";
+}
+}
+
 // Process active and inactive users
 $activeUserIds = array_column($activeUsers, 'name');
 $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
     return !in_array($user['name'], $activeUserIds);
 });
+
+// Calculate totals
+$totalSecrets = count($allUsers);
+$totalActiveUsers = count($activeUsers);
+$totalInactiveUsers = count($inactiveUsers);
 
 ?>
 
@@ -52,6 +99,14 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
 <body>
     <div class="container mt-4">
         <h1>Manage PPPoE Users</h1>
+
+        <!-- Total Stats -->
+        <div class="mb-4">
+            <h3>Summary</h3>
+            <p>Total Secrets (Users): <strong><?php echo $totalSecrets; ?></strong></p>
+            <p>Total Active Users: <strong><?php echo $totalActiveUsers; ?></strong></p>
+            <p>Total Inactive Users: <strong><?php echo $totalInactiveUsers; ?></strong></p>
+        </div>
 
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs" id="userTab" role="tablist">
@@ -78,7 +133,7 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th><a href="javascript:void(0)" onclick="sortTable(0, 'activeUsersTableBody')">No</a></th>
+                        <th><a href="javascript:void(0)" onclick="sortTable(0, 'activeUsersTableBody')">No</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(1, 'activeUsersTableBody')">Username</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(2, 'activeUsersTableBody')">IP Address</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(3, 'activeUsersTableBody')">Profile</a></th>
@@ -93,6 +148,7 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
                                 <td>
+                                    <!-- Edit Button (trigger modal) -->
                                     <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
                                         data-id="<?php echo $user['.id']; ?>"
                                         data-username="<?php echo htmlspecialchars($user['name']); ?>"
@@ -119,7 +175,7 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th><a href="javascript:void(0)" onclick="sortTable(0, 'inactiveUsersTableBody')">No</a></th>
+                        <th><a href="javascript:void(0)" onclick="sortTable(0, 'inactiveUsersTableBody')">No</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(1, 'inactiveUsersTableBody')">Username</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(2, 'inactiveUsersTableBody')">Profile</a></th>
                         </tr>
@@ -171,7 +227,6 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script>
         // Live Search for Active Users
         $('#activeSearch').on('input', function() {
@@ -182,19 +237,6 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
                 data: { searchType: 'active', searchQuery: query },
                 success: function(data) {
                     $('#activeUsersTableBody').html(data);
-                }
-            });
-        });
-
-        // Live Search for Inactive Users
-        $('#inactiveSearch').on('input', function() {
-            var query = $(this).val();
-            $.ajax({
-                url: 'search_users.php',
-                type: 'POST',
-                data: { searchType: 'inactive', searchQuery: query },
-                success: function(data) {
-                    $('#inactiveUsersTableBody').html(data);
                 }
             });
         });
@@ -223,6 +265,19 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
                 tableBody.appendChild(row);
             });
         }
+
+        // Live Search for Inactive Users
+        $('#inactiveSearch').on('input', function() {
+            var query = $(this).val();
+            $.ajax({
+                url: 'search_users.php',
+                type: 'POST',
+                data: { searchType: 'inactive', searchQuery: query },
+                success: function(data) {
+                    $('#inactiveUsersTableBody').html(data);
+                }
+            });
+        });
 
         // Trigger modal and pass data to it
         document.getElementById('editModal').addEventListener('show.bs.modal', function (event) {
