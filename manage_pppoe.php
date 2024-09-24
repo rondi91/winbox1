@@ -5,20 +5,23 @@ require 'config.php';          // Load the router configuration
 use RouterOS\Client;
 use RouterOS\Query;
 
-// Create the Mikrotik client using the configuration from config.php
 $client = new Client([
     'host' => $mikrotikConfig['host'],
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
 
-// Get all PPPoE secrets (users) using print and read()
+// Fetch PPPoE secrets (users)
 $secretQuery = new Query('/ppp/secret/print');
-$allUsers = $client->query($secretQuery)->read(); // Fetch users with read()
+$allUsers = $client->query($secretQuery)->read(); // Fetch all users
 
-// Get all active PPPoE connections
+// Fetch active PPPoE connections
 $activeQuery = new Query('/ppp/active/print');
-$activeUsers = $client->query($activeQuery)->read(); // Fetch active users with read()
+$activeUsers = $client->query($activeQuery)->read(); // Fetch active users
+
+// Fetch all profiles
+$profileQuery = new Query('/ppp/profile/print');
+$profiles = $client->query($profileQuery)->read(); // Fetch profiles
 
 // Function to find the profile of an active user by matching it with allUsers
 function findUserProfile($activeUserName, $allUsers) {
@@ -36,11 +39,6 @@ $inactiveUsers = array_filter($allUsers, function($user) use ($activeUserIds) {
     return !in_array($user['name'], $activeUserIds);
 });
 
-// Calculate totals
-$totalSecrets = count($allUsers);
-$totalActiveUsers = count($activeUsers);
-$totalInactiveUsers = count($inactiveUsers);
-
 ?>
 
 <!DOCTYPE html>
@@ -54,14 +52,6 @@ $totalInactiveUsers = count($inactiveUsers);
 <body>
     <div class="container mt-4">
         <h1>Manage PPPoE Users</h1>
-
-        <!-- Total Stats -->
-        <div class="mb-4">
-            <h3>Summary</h3>
-            <p>Total Secrets (Users): <strong><?php echo $totalSecrets; ?></strong></p>
-            <p>Total Active Users: <strong><?php echo $totalActiveUsers; ?></strong></p>
-            <p>Total Inactive Users: <strong><?php echo $totalInactiveUsers; ?></strong></p>
-        </div>
 
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs" id="userTab" role="tablist">
@@ -88,10 +78,10 @@ $totalInactiveUsers = count($inactiveUsers);
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Username</th>
-                            <th>IP Address</th>
-                            <th>Profile</th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(0, 'activeUsersTableBody')">No</a></th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(1, 'activeUsersTableBody')">Username</a></th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(2, 'activeUsersTableBody')">IP Address</a></th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(3, 'activeUsersTableBody')">Profile</a></th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -103,7 +93,6 @@ $totalInactiveUsers = count($inactiveUsers);
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
                                 <td>
-                                    <!-- Edit Button (trigger modal) -->
                                     <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
                                         data-id="<?php echo $user['.id']; ?>"
                                         data-username="<?php echo htmlspecialchars($user['name']); ?>"
@@ -130,9 +119,9 @@ $totalInactiveUsers = count($inactiveUsers);
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Username</th>
-                            <th>Profile</th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(0, 'inactiveUsersTableBody')">No</a></th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(1, 'inactiveUsersTableBody')">Username</a></th>
+                            <th><a href="javascript:void(0)" onclick="sortTable(2, 'inactiveUsersTableBody')">Profile</a></th>
                         </tr>
                     </thead>
                     <tbody id="inactiveUsersTableBody">
@@ -182,6 +171,7 @@ $totalInactiveUsers = count($inactiveUsers);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         // Live Search for Active Users
         $('#activeSearch').on('input', function() {
@@ -209,6 +199,31 @@ $totalInactiveUsers = count($inactiveUsers);
             });
         });
 
+        // Sorting function for tables
+        function sortTable(columnIndex, tableBodyId) {
+            var tableBody = document.getElementById(tableBodyId);
+            var rows = Array.from(tableBody.getElementsByTagName("tr"));
+
+            // Toggle sorting order
+            var isAscending = tableBody.getAttribute("data-sort-order") === "asc";
+            tableBody.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+
+            rows.sort(function(a, b) {
+                var cellA = a.getElementsByTagName("td")[columnIndex].innerText.toLowerCase();
+                var cellB = b.getElementsByTagName("td")[columnIndex].innerText.toLowerCase();
+
+                if (cellA < cellB) return isAscending ? -1 : 1;
+                if (cellA > cellB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Clear existing rows and append sorted rows
+            tableBody.innerHTML = "";
+            rows.forEach(function(row) {
+                tableBody.appendChild(row);
+            });
+        }
+
         // Trigger modal and pass data to it
         document.getElementById('editModal').addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
@@ -219,7 +234,10 @@ $totalInactiveUsers = count($inactiveUsers);
             var modal = this;
             modal.querySelector('#edit-id').value = id;
             modal.querySelector('#edit-username').value = username;
-            modal.querySelector('#edit-profile').value = profile;
+
+            // Pre-select the old profile in the dropdown
+            var profileDropdown = modal.querySelector('#edit-profile');
+            profileDropdown.value = profile;  // Set the dropdown to the user's current profile
         });
     </script>
 </body>
