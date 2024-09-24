@@ -1,6 +1,6 @@
 <?php
-require 'vendor/autoload.php'; // Assuming you load the RouterOS API via Composer
-require 'config.php';          // Load your configuration (Mikrotik credentials)
+require 'vendor/autoload.php'; // Load RouterOS API via Composer
+require 'config.php';          // Load your Mikrotik credentials
 
 use RouterOS\Client;
 use RouterOS\Query;
@@ -10,10 +10,17 @@ $client = new Client([
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
+// Check if the username is passed in the request
+if (isset($_POST['username'])) {
+    $username = $_POST['username'];
+} else {
+    // If no username is provided, return an error
+    echo json_encode(array("error" => "No username provided."));
+    exit();
+}
 
-// Fetch the PPPoE username from the AJAX request
-$username = $_POST['username'];
 
+// var_dump($username);
 // Query to get all interfaces
 $allInterfacesQuery = (new Query("/interface/print"));
 $interfaces = $client->query($allInterfacesQuery)->read();
@@ -24,7 +31,6 @@ $matching_interface = null;
 // Loop through all interfaces to find the one that matches the username
 foreach ($interfaces as $interface) {
     if (isset($interface['name']) && strpos($interface['name'], $username) !== false) {
-        // If the interface name contains the username, we consider it a match
         $matching_interface = $interface['name'];
         break;
     }
@@ -36,10 +42,8 @@ if ($matching_interface) {
         ->equal('interface', $matching_interface)
         ->equal('once', true);
 
-    // Execute the query to get traffic data
     $traffic_data = $client->query($trafficQuery)->read();
 
-    // Display the traffic data if available
     if (!empty($traffic_data)) {
         $traffic_data = $traffic_data[0]; // Get the first set of traffic data
         $rx_bytes = $traffic_data['rx-bits-per-second']; // RX in bits per second
@@ -52,19 +56,17 @@ if ($matching_interface) {
         // Return the result as JSON
         echo json_encode(array(
             "rx" => $rx_mbps,
-            "tx" => $tx_mbps
+            "tx" => $tx_mbps,
+
         ));
     } else {
-        // If traffic data is not available
         echo json_encode(array(
             "error" => "No traffic data available for interface: $matching_interface"
         ));
     }
 } else {
-    // If no matching interface is found
     echo json_encode(array(
         "error" => "No matching interface found for username: $username"
     ));
 }
-
 ?>

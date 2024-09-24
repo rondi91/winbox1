@@ -170,8 +170,8 @@ function getTrafficData($interface) {
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-info" onclick="fetchTrafficDetails('<?php echo htmlspecialchars($user['name']); ?>')">view traffic</button>
-                                </td>
+                                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#trafficModal" data-username="<?php echo htmlspecialchars($user['name']); ?>">Details</button>
+                                 </td>
                                 <td>
                                     <!-- Edit Button (trigger modal) -->
                                     <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
@@ -249,22 +249,21 @@ function getTrafficData($interface) {
           </div>
         </div>
     </div>
-
-    <!-- Traffic Details Modal -->
-    <div class="modal fade" id="trafficModal" tabindex="-1" aria-labelledby="trafficModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="trafficModalLabel">Traffic Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <div id="trafficDetails"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- Traffic Details Modal -->
+<div class="modal fade" id="trafficModal" tabindex="-1" aria-labelledby="trafficModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="trafficModalLabel">Traffic Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="trafficDetails"></div>
+      </div>
     </div>
+  </div>
+</div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -336,16 +335,32 @@ function getTrafficData($interface) {
             profileDropdown.value = profile;  // Set the dropdown to the user's current profile
         });
 
-         // Function to fetch and display traffic details
+         
+        var intervalID; // To store the interval ID for polling
+
+// Function to start real-time traffic monitoring
+function startRealTimeTraffic(username) {
+    clearInterval(intervalID); // Clear any existing interval
+    console.log("Starting real-time traffic monitoring for: " + username); // Log the start
+
+    // Poll for traffic data every 2 seconds
+    intervalID = setInterval(function() {
+        fetchTrafficDetails(username);
+    }, 1000); // Poll every 2000 milliseconds (2 seconds)
+}
+
+// Function to fetch traffic details via AJAX
 function fetchTrafficDetails(username) {
+    console.log("Fetching traffic details for: " + username); // Log the fetch attempt
+
     $.ajax({
         url: 'get_traffic_details.php',
         type: 'POST',
         data: { username: username },
         success: function(data) {
-            let result = JSON.parse(data);
+            let result = JSON.parse(data); // Parse JSON response
             if (result.rx && result.tx) {
-                // Display RX and TX data if available
+                // Update modal content with RX and TX data
                 $('#trafficDetails').html(`
                     <p>Rx: ${result.rx} Mbps</p>
                     <p>Tx: ${result.tx} Mbps</p>
@@ -354,15 +369,30 @@ function fetchTrafficDetails(username) {
                 // Display an error message if something went wrong
                 $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
             }
-
-            $('#trafficModal').modal('show'); // Show the modal with traffic data
         },
-        error: function() {
-            $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
-            $('#trafficModal').modal('show');
+        error: function(xhr, status, error) {
+            // Display error in the modal if AJAX request fails
+            $('#trafficDetails').html(`<p>Error fetching traffic data: ${error}</p>`);
+            console.error("AJAX Error: " + status + " - " + error); // Log AJAX errors
         }
     });
 }
-    </script>
+
+// Start real-time traffic monitoring when the modal is shown
+document.getElementById('trafficModal').addEventListener('show.bs.modal', function (event) {
+    var username = event.relatedTarget.getAttribute('data-username'); // Get the username from the button
+    startRealTimeTraffic(username); // Start polling
+});
+
+// Stop polling when the modal is hidden
+document.getElementById('trafficModal').addEventListener('hide.bs.modal', function (event) {
+    clearInterval(intervalID); // Stop polling
+    console.log("Stopped real-time traffic monitoring."); // Log the stop
+});
+
+    
+</script>
+
+
 </body>
 </html>
