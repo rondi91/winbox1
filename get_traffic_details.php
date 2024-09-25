@@ -1,6 +1,6 @@
 <?php
 require 'vendor/autoload.php'; // Load RouterOS API via Composer
-require 'config.php';          // Load your Mikrotik credentials
+require 'config.php';          // Load the router configuration
 
 use RouterOS\Client;
 use RouterOS\Query;
@@ -10,25 +10,21 @@ $client = new Client([
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
+
 // Check if the username is passed in the request
 if (isset($_POST['username'])) {
     $username = $_POST['username'];
 } else {
-    // If no username is provided, return an error
     echo json_encode(array("error" => "No username provided."));
     exit();
 }
 
-
-// var_dump($username);
 // Query to get all interfaces
 $allInterfacesQuery = (new Query("/interface/print"));
 $interfaces = $client->query($allInterfacesQuery)->read();
 
-// Initialize variable to store the matching interface
+// Find the matching interface for the username
 $matching_interface = null;
-
-// Loop through all interfaces to find the one that matches the username
 foreach ($interfaces as $interface) {
     if (isset($interface['name']) && strpos($interface['name'], $username) !== false) {
         $matching_interface = $interface['name'];
@@ -56,8 +52,7 @@ if ($matching_interface) {
         // Return the result as JSON
         echo json_encode(array(
             "rx" => $rx_mbps,
-            "tx" => $tx_mbps,
-
+            "tx" => $tx_mbps
         ));
     } else {
         echo json_encode(array(
