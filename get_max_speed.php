@@ -50,4 +50,3 @@ if (!empty($profileData)) {
 } else {
     echo json_encode(array("error" => "No PPPoE user found."));
 }
-?>

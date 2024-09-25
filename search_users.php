@@ -47,6 +47,10 @@ if ($searchType === 'active') {
         echo '<td>' . htmlspecialchars($user['name']) . '</td>';
         echo '<td><a href="http://' . htmlspecialchars($user['address']) . '" target="_blank">' . htmlspecialchars($user['address']) . '</a></td>';
         echo '<td>' . htmlspecialchars(findUserProfile($user['name'], $allUsers)) . '</td>';
+        echo '<td>' ;
+        echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#trafficModal"';
+        echo 'data-username='.$user['name'].">Details</button> ";
+        echo '</td>';
         echo '<td>';
         echo '<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"';
         echo 'data-id="' . $user['.id'] . '"';
