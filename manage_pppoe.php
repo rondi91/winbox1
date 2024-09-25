@@ -340,89 +340,86 @@ function getTrafficData($interface) {
             profileDropdown.value = profile;  // Set the dropdown to the user's current profile
         });
 
-         
         var intervalID; // To store the interval ID for polling
-var trafficGaugeChart; // To store the Chart.js instance
+        var trafficGaugeChart; // To store the Chart.js instance
 
-// Function to initialize the gauge
-function initTrafficGauge() {
-    var ctx = document.getElementById('trafficGauge').getContext('2d');
-    trafficGaugeChart = new Chart(ctx, {
-        type: 'doughnut', // Using doughnut chart for the gauge look
-        data: {
-            labels: ['Rx Mbps', 'Tx Mbps'],
-            datasets: [{
-                data: [0, 0], // Initially, both values are 0
-                backgroundColor: ['#4caf50', '#f44336'],
-                hoverBackgroundColor: ['#66bb6a', '#ef5350']
-            }]
-        },
-        options: {
-            circumference: 180,
-            rotation: 270, // Half-circle
-            cutoutPercentage: 70, // Thickness of the gauge
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
+        // Function to initialize the doughnut gauge
+        function initTrafficGauge() {
+            var ctx = document.getElementById('trafficGauge').getContext('2d');
+            trafficGaugeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Rx Mbps', 'Tx Mbps'],
+                    datasets: [{
+                        data: [0, 0], // Initially, both values are 0
+                        backgroundColor: ['#4caf50', '#f44336'],
+                        hoverBackgroundColor: ['#66bb6a', '#ef5350']
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: 270, // Half-circle (doughnut gauge)
+                    cutoutPercentage: 70, // Thickness of the gauge
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true // Display legend for Rx/Tx
+                        }
+                    }
                 }
-            }
+            });
         }
-    });
-}
 
-// Function to update the gauge
-function updateTrafficGauge(rxMbps, txMbps) {
-    trafficGaugeChart.data.datasets[0].data = [rxMbps, txMbps];
-    trafficGaugeChart.update();
-}
-
-// Function to start real-time traffic monitoring
-function startRealTimeTraffic(username) {
-    clearInterval(intervalID); // Clear any existing interval
-    intervalID = setInterval(function() {
-        fetchTrafficDetails(username);
-    }, 1000); // Poll every 2 seconds
-}
-
-// Function to fetch traffic details
-function fetchTrafficDetails(username) {
-    $.ajax({
-        url: 'get_traffic_details.php',
-        type: 'POST',
-        data: { username: username },
-        success: function(data) {
-            let result = JSON.parse(data);
-            if (result.rx && result.tx) {
-                updateTrafficGauge(result.rx, result.tx); // Update gauge with real-time data
-                $('#trafficDetails').html(`
-                    <p>Rx: ${result.rx} Mbps</p>
-                    <p>Tx: ${result.tx} Mbps</p>
-                `);
-            } else if (result.error) {
-                $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
-            }
-        },
-        error: function() {
-            $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
+        // Function to update the gauge with real-time data
+        function updateTrafficGauge(rxMbps, txMbps) {
+            trafficGaugeChart.data.datasets[0].data = [rxMbps, txMbps];
+            trafficGaugeChart.update();
         }
-    });
-}
 
-// Start real-time traffic monitoring when the modal is shown
-document.getElementById('trafficModal').addEventListener('show.bs.modal', function (event) {
-    var username = event.relatedTarget.getAttribute('data-username'); // Get the username from the button
-    initTrafficGauge(); // Initialize the gauge
-    startRealTimeTraffic(username); // Start polling
-});
+        // Function to start real-time traffic monitoring
+        function startRealTimeTraffic(username) {
+            clearInterval(intervalID); // Clear any existing interval
+            intervalID = setInterval(function() {
+                fetchTrafficDetails(username);
+            }, 2000); // Poll every 2 seconds
+        }
 
-// Stop polling when the modal is hidden
-document.getElementById('trafficModal').addEventListener('hide.bs.modal', function (event) {
-    clearInterval(intervalID); // Stop polling
-});
+        // Function to fetch traffic details via AJAX
+        function fetchTrafficDetails(username) {
+            $.ajax({
+                url: 'get_traffic_details.php',
+                type: 'POST',
+                data: { username: username },
+                success: function(data) {
+                    let result = JSON.parse(data);
+                    if (result.rx && result.tx) {
+                        updateTrafficGauge(result.rx, result.tx); // Update gauge with real-time data
+                        $('#trafficDetails').html(`
+                            <p>Rx: ${result.rx} Mbps</p>
+                            <p>Tx: ${result.tx} Mbps</p>
+                        `);
+                    } else if (result.error) {
+                        $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
+                    }
+                },
+                error: function() {
+                    $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
+                }
+            });
+        }
 
-    
-</script>
+        // Start real-time traffic monitoring when the modal is shown
+        document.getElementById('trafficModal').addEventListener('show.bs.modal', function (event) {
+            var username = event.relatedTarget.getAttribute('data-username'); // Get the username from the button
+            initTrafficGauge(); // Initialize the gauge
+            startRealTimeTraffic(username); // Start polling
+        });
+
+        // Stop polling when the modal is hidden
+        document.getElementById('trafficModal').addEventListener('hide.bs.modal', function (event) {
+            clearInterval(intervalID); // Stop polling
+        });
+    </script>
 
 
 </body>
