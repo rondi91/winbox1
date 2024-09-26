@@ -179,7 +179,10 @@ function getTrafficData($interface) {
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
                                 <td><?php echo htmlspecialchars(findUserProfile($user['name'], $allUsers)); ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#trafficModal" data-username="<?php echo htmlspecialchars($user['name']); ?>">Details</button>
+                                    <!-- Button to open traffic details page -->
+                                    <button type="button" class="btn btn-info" onclick="window.location.href='traffic_details.php?username=<?php echo $user['name']; ?>'">
+                                        Details
+                                    </button>
                                  </td>
                                 <td>
                                     <!-- Edit Button (trigger modal) -->
@@ -263,7 +266,7 @@ function getTrafficData($interface) {
     <div class="modal-dialog .modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="trafficModalLabel">Traffic Details</h5>
+                <h5 class="modal-title" id="trafficModalLabel">Traffic Details  </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -365,135 +368,140 @@ function getTrafficData($interface) {
             profileDropdown.value = profile;  // Set the dropdown to the user's current profile
         });
 
-        var intervalID; // To store the interval ID for polling
-var downloadGaugeChart; // To store the Download gauge instance
-var uploadGaugeChart;   // To store the Upload gauge instance
-var maxSpeed = 100;     // Default max speed, can be set dynamically
+            // MEMBUAT DOUGHNATE GAUGE VIEW MODAL 
 
-// Function to initialize the Download and Upload gauges
-function initTrafficGauges() {
-    // Get the context of both canvases
-    var downloadCtx = document.getElementById('downloadGauge').getContext('2d');
-    var uploadCtx = document.getElementById('uploadGauge').getContext('2d');
+            var intervalID; // To store the interval ID for polling
+            var downloadGaugeChart; // To store the Download gauge instance
+            var uploadGaugeChart;   // To store the Upload gauge instance
+            var maxSpeed = 100;     // Default max speed, can be set dynamically
 
-    // Initialize Download Gauge
-    downloadGaugeChart = new Chart(downloadCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Used', 'Remaining'],
-            datasets: [{
-                data: [0, maxSpeed], // Initial values (0 used, maxSpeed remaining)
-                backgroundColor: ['#4caf50', '#e0e0e0'], // Green for usage, grey for remaining
-                hoverBackgroundColor: ['#66bb6a', '#e0e0e0']
-            }]
-        },
-        options: {
-            circumference: 360, // Full circle
-            rotation: -90,      // Start from top
-            cutoutPercentage: 70, // Thickness of the gauge
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
+            // 3.Function to initialize the Download and Upload gauges
+            function initTrafficGauges() {
+                // Get the context of both canvases
+                var downloadCtx = document.getElementById('downloadGauge').getContext('2d');
+                var uploadCtx = document.getElementById('uploadGauge').getContext('2d');
+
+                // Initialize Download Gauge
+                downloadGaugeChart = new Chart(downloadCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Used', 'Remaining'],
+                        datasets: [{
+                            data: [0, maxSpeed], // Initial values (0 used, maxSpeed remaining)
+                            backgroundColor: ['#4caf50', '#e0e0e0'], // Green for usage, grey for remaining
+                            hoverBackgroundColor: ['#66bb6a', '#e0e0e0']
+                        }]
+                    },
+                    options: {
+                        circumference: 360, // Full circle
+                        rotation: -90,      // Start from top
+                        cutoutPercentage: 70, // Thickness of the gauge
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // Initialize Upload Gauge
+                uploadGaugeChart = new Chart(uploadCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Used', 'Remaining'],
+                        datasets: [{
+                            data: [0, maxSpeed], // Initial values (0 used, maxSpeed remaining)
+                            backgroundColor: ['#f44336', '#e0e0e0'], // Red for usage, grey for remaining
+                            hoverBackgroundColor: ['#ef5350', '#e0e0e0']
+                        }]
+                    },
+                    options: {
+                        circumference: 360, // Full circle
+                        rotation: -90,      // Start from top
+                        cutoutPercentage: 70, // Thickness of the gauge
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
             }
-        }
-    });
 
-    // Initialize Upload Gauge
-    uploadGaugeChart = new Chart(uploadCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Used', 'Remaining'],
-            datasets: [{
-                data: [0, maxSpeed], // Initial values (0 used, maxSpeed remaining)
-                backgroundColor: ['#f44336', '#e0e0e0'], // Red for usage, grey for remaining
-                hoverBackgroundColor: ['#ef5350', '#e0e0e0']
-            }]
-        },
-        options: {
-            circumference: 360, // Full circle
-            rotation: -90,      // Start from top
-            cutoutPercentage: 70, // Thickness of the gauge
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
+            //5. Function to update the Download and Upload gauges with new traffic data
+            function updateTrafficGauges(rxMbps, txMbps) {
+                downloadGaugeChart.data.datasets[0].data = [rxMbps, maxSpeed - rxMbps]; // Update download gauge
+                downloadGaugeChart.update(); // Redraw the download gauge
+
+                uploadGaugeChart.data.datasets[0].data = [txMbps, maxSpeed - txMbps]; // Update upload gauge
+                uploadGaugeChart.update(); // Redraw the upload gauge
             }
-        }
-    });
-}
 
-// Function to update the Download and Upload gauges with new traffic data
-function updateTrafficGauges(rxMbps, txMbps) {
-    downloadGaugeChart.data.datasets[0].data = [rxMbps, maxSpeed - rxMbps]; // Update download gauge
-    downloadGaugeChart.update(); // Redraw the download gauge
+            // 2.Function to start real-time traffic monitoring
+            function startRealTimeTraffic(username) {
+                clearInterval(intervalID); // Clear any existing interval
 
-    uploadGaugeChart.data.datasets[0].data = [txMbps, maxSpeed - txMbps]; // Update upload gauge
-    uploadGaugeChart.update(); // Redraw the upload gauge
-}
-
-// Function to start real-time traffic monitoring
-function startRealTimeTraffic(username) {
-    clearInterval(intervalID); // Clear any existing interval
-
-    // Fetch max speed from the user's PPPoE profile or set dynamically
-    $.ajax({
-        url: 'get_max_speed.php',
-        type: 'POST',
-        data: { username: username },
-        success: function(data) {
-            let result = JSON.parse(data);
-            if (result.maxSpeed) {
-                maxSpeed = result.maxSpeed; // Set max speed dynamically
-                initTrafficGauges(); // Initialize the gauges with the dynamic max speed
-                intervalID = setInterval(function() {
-                    fetchTrafficDetails(username);
-                }, 1000); // Poll every 2 seconds
-            } else {
-                $('#trafficDetails').html(`<p>Error: Unable to fetch max speed for user.</p>`);
+                // Fetch max speed from the user's PPPoE profile or set dynamically
+                $.ajax({
+                    url: 'get_max_speed.php',
+                    type: 'POST',
+                    data: { username: username },
+                    success: function(data) {
+                        let result = JSON.parse(data);
+                        if (result.maxSpeed) {
+                            maxSpeed = result.maxSpeed; // Set max speed dynamically
+                            initTrafficGauges(); // Initialize the gauges with the dynamic max speed
+                            intervalID = setInterval(function() {
+                                fetchTrafficDetails(username);
+                            }, 1000); // Poll every 2 seconds
+                        } else {
+                            $('#trafficDetails').html(`<p>Error: Unable to fetch max speed for user.</p>`);
+                        }
+                    }
+                });
             }
-        }
-    });
-}
 
-// Function to fetch real-time traffic details and update the gauges
-function fetchTrafficDetails(username) {
-    $.ajax({
-        url: 'get_traffic_details.php',
-        type: 'POST',
-        data: { username: username },
-        success: function(data) {
-            let result = JSON.parse(data);
-            if (result.rx && result.tx) {
-                updateTrafficGauges(result.rx, result.tx); // Update gauges with real-time data
-                $('#trafficDetails').html(`
-                    <p>Download (Rx): ${result.rx} Mbps</p>
-                    <p>Upload (Tx): ${result.tx} Mbps</p>
-                `);
-            } else if (result.error) {
-                $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
+            // 4.Function to fetch real-time traffic details and update the gauges
+            function fetchTrafficDetails(username) {
+                $.ajax({
+                    url: 'get_traffic_details.php',
+                    type: 'POST',
+                    data: { username: username },
+                    success: function(data) {
+                        let result = JSON.parse(data);
+                        if (result.rx && result.tx) {
+                            updateTrafficGauges(result.rx, result.tx); // Update gauges with real-time data
+                            $('#trafficDetails').html(`
+                                <p> Upload (Tx): ${result.rx} Mbps</p>
+                                <p>Download (Rx): ${result.tx} Mbps</p>
+                            `);
+                        } else if (result.error) {
+                            $('#trafficDetails').html(`<p>Error: ${result.error}</p>`);
+                        }
+                    },
+                    error: function() {
+                        $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
+                    }
+                });
             }
-        },
-        error: function() {
-            $('#trafficDetails').html(`<p>Error fetching traffic data.</p>`);
-        }
-    });
-}
 
-// Start real-time traffic monitoring when the modal is shown
-document.getElementById('trafficModal').addEventListener('show.bs.modal', function (event) {
-    var username = event.relatedTarget.getAttribute('data-username'); // Get the username from the button
-    startRealTimeTraffic(username); // Start monitoring
-});
+            // 1.Start real-time traffic monitoring when the modal is shown
+            document.getElementById('trafficModal').addEventListener('show.bs.modal', function (event) {
+                var username = event.relatedTarget.getAttribute('data-username'); // Get the username from the button
+                // Update the modal's title with the PPPoE username
+                var modalTitle = document.getElementById('trafficModalLabel');
+                modalTitle.textContent = 'Traffic Details for ' + username  ;
+                startRealTimeTraffic(username); // Start monitoring
+            });
 
-// Stop polling when the modal is hidden
-document.getElementById('trafficModal').addEventListener('hide.bs.modal', function (event) {
-    clearInterval(intervalID); // Stop polling
-});
+            //6. Stop polling when the modal is hidden
+            document.getElementById('trafficModal').addEventListener('hide.bs.modal', function (event) {
+                clearInterval(intervalID); // Stop polling
+            });
     </script>
 
 

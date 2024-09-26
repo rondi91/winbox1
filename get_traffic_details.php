@@ -12,8 +12,8 @@ $client = new Client([
 ]);
 
 // Check if the username is passed in the request
-if (isset($_POST['username'])) {
-    $username = $_POST['username'];
+if (isset($_GET['username'])) {
+    $username = $_GET['username'];
 } else {
     echo json_encode(array("error" => "No username provided."));
     exit();
