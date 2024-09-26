@@ -86,21 +86,143 @@ if (!empty($profileData)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traffic Details for <?php echo htmlspecialchars($username); ?></title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Styling -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .card {
+            margin: 20px;
+        }
+        .gauge-card {
+            text-align: center;
+        }
+        .gauge-card h5 {
+            margin-bottom: 20px;
+        }
+        canvas {
+            margin: 0 auto;
+        }
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #343a40;
+            color: #fff;
+            min-height: 100vh;
+        }
+        #sidebar .components a {
+            padding: 10px;
+            font-size: 1.1em;
+            display: block;
+            color: #ddd;
+            text-decoration: none;
+        }
+        #sidebar .components a:hover {
+            background: #007bff;
+            color: #fff;
+        }
+        .active a {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <h1>Traffic Details for <?php echo htmlspecialchars($username); ?></h1>
-    <p>Profile: <?php echo htmlspecialchars($profileData); ?></p>
-    <p>Max Speed (Rx/Tx): <?php echo htmlspecialchars($rxLimit . ' / ' . $txLimit); ?></p>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>Winbox-style Dashboard</h3>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="<?php echo ($current_page == 'index.php') ? 'active' : ''; ?>">
+                    <a href="index.php" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Dashboard</a>
+                    <ul class="collapse list-unstyled" id="homeSubmenu">
+                        <li>
+                            <a href="#">Overview</a>
+                        </li>
+                        <li>
+                            <a href="#">Stats</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="<?php echo ($current_page == 'manage_pppoe.php') ? 'active' : ''; ?>">
+                    <a href="manage_pppoe.php">Manage PPPOE</a>
+                </li>
+                <li class="<?php echo ($current_page == 'manage_routers.php') ? 'active' : ''; ?>">
+                    <a href="manage_routers.php">Manage Routers</a>
+                </li>
+                <li>
+                    <a href="#">Profile</a>
+                </li>
+                <li>
+                    <a href="setting.php">Settings</a>
+                </li>
+                <li>
+                    <a href="#">Logout</a>
+                </li>
+            </ul>
+        </nav>
 
-    <!-- Canvas for Traffic Gauge -->
-    <h5>Download Speed (Rx)</h5>
-    <canvas id="downloadGauge" width="10" height="10"></canvas>
-    
-    <h5>Upload Speed (Tx)</h5>
-    <canvas id="uploadGauge" width="10" height="10"></canvas>
+        <!-- Page Content -->
+        <div class="container-fluid">
+            <div class="page-header">
+                <h1 class="display-6">Traffic Details for <strong><?php echo htmlspecialchars($username); ?></strong></h1>
+            </div>
 
-    <div id="trafficDetails"></div>
+            <div class="row">
+                <!-- User Info Card -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>User Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Username:</strong> <?php echo htmlspecialchars($username); ?></p>
+                            <p><strong>Profile:</strong> <?php echo htmlspecialchars($profileData); ?></p>
+                            <p><strong>Max Speed:</strong> <?php echo htmlspecialchars($rxLimit . ' / ' . $txLimit); ?> (Rx / Tx)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Speed Gauge -->
+                <div class="col-md-4">
+                    <div class="card gauge-card">
+                        <div class="card-header">
+                            <h5>Download Speed (Rx)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="downloadGauge" width="250" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Speed Gauge -->
+                <div class="col-md-4">
+                    <div class="card gauge-card">
+                        <div class="card-header">
+                            <h5>Upload Speed (Tx)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="uploadGauge" width="250" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="trafficDetails"></div>
+        </div>
+    </div>
 
     <script>
         var maxRx = <?php echo (int)$rxLimit; ?>; // Max download speed from PHP
