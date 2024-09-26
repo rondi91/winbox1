@@ -301,7 +301,7 @@ if (!empty($profileData)) {
         }
 
         // Fetch traffic data every 2 seconds (real-time updates)
-        setInterval(fetchTrafficData, 2000);
+        setInterval(fetchTrafficData, 1000);
     </script>
 </body>
 </html>
