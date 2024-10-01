@@ -102,6 +102,27 @@ function getTrafficData($interface) {
     return $trafficData;
 }
 
+// Pagination settings
+$limit = 10; // Users per page
+$totalUsers = $totalActiveUsers; // Total number of users
+$totalPages = ceil($totalUsers / $limit); // Total number of pages
+
+// Get the current page from query parameters, default to 1 if not set
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+
+// Prevent invalid page numbers
+if ($page < 1) {
+    $page = 1;
+} elseif ($page > $totalPages) {
+    $page = $totalPages;
+}
+
+// Calculate the starting index for the users to display on the current page
+$start = ($page - 1) * $limit;
+
+// Slice the array to get only the users for the current page
+$usersForCurrentPage = array_slice($allUsers, $start, $limit);
+
 ?>
 
 <!DOCTYPE html>
@@ -194,7 +215,29 @@ function getTrafficData($interface) {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
+
+                <!-- Pagination Controls -->
+<nav>
+            <ul class="pagination justify-content-center">
+                <!-- Previous Button -->
+                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                    <a class="page-link" href="?page=<?php echo $page - 1; ?>">Previous</a>
+                </li>
+
+                <!-- Page Numbers -->
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <!-- Next Button -->
+                <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
+                    <a class="page-link" href="?page=<?php echo $page + 1; ?>">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 
             <!-- Inactive Users Tab -->
             <div class="tab-pane fade" id="inactiveUsers" role="tabpanel" aria-labelledby="inactive-tab">
@@ -286,12 +329,12 @@ function getTrafficData($interface) {
             </div>
         </div>
     </div>
-</div>
 
 
 
 
 
+    </div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -366,15 +409,26 @@ function getTrafficData($interface) {
         });
 
         var intervalID; // To store the interval ID for polling
-var downloadGaugeChart; // To store the Download gauge instance
-var uploadGaugeChart;   // To store the Upload gauge instance
-var maxSpeed = 100;     // Default max speed, can be set dynamically
+        var downloadGaugeChart; // To store the Download gauge instance
+        var uploadGaugeChart;   // To store the Upload gauge instance
+        var maxSpeed = 100;     // Default max speed, can be set dynamically
 
 // Function to initialize the Download and Upload gauges
 function initTrafficGauges() {
     // Get the context of both canvases
     var downloadCtx = document.getElementById('downloadGauge').getContext('2d');
     var uploadCtx = document.getElementById('uploadGauge').getContext('2d');
+
+     // Destroy existing Download Gauge if it exists
+     if (downloadGaugeChart) {
+        downloadGaugeChart.destroy();
+    }
+
+    // Destroy existing Upload Gauge if it exists
+    if (uploadGaugeChart) {
+        uploadGaugeChart.destroy();
+    }
+
 
     // Initialize Download Gauge
     downloadGaugeChart = new Chart(downloadCtx, {
