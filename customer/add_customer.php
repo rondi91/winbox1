@@ -83,7 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Customer</title>
+    <!-- Include Bootstrap CSS for styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+\
+<!-- Include jQuery first -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Include Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
 </head>
 <body>
     <div class="container mt-4">
@@ -109,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="address" name="address" required>
             </div>
 
-            <!-- Dropdown for selecting PPPoE Username but submitting the PPPoE ID -->
+            <!-- Searchable Dropdown for selecting PPPoE Username -->
             <div class="mb-3">
                 <label for="pppoe_id" class="form-label">PPPoE Username</label>
                 <select class="form-select" id="pppoe_id" name="pppoe_id" required>
@@ -128,6 +141,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
+    <!-- Include Bootstrap JS and Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Initialize Select2 on the PPPoE select dropdown
+        $('#pppoe_id').select2({
+            placeholder: "Select a PPPoE User",
+            allowClear: true
+        });
+    </script>
 </body>
 </html>
