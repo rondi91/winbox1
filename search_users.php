@@ -43,6 +43,9 @@ if ($searchType === 'active') {
     // Return filtered active users
     foreach ($activeUsers as $index => $user) {
         echo '<tr>';
+        echo '<td>
+        <input type="checkbox" name="user_ids[]" value="'.$user['name'].'" class="form-check-input">
+        </td>';  
         echo '<td>' . ($index + 1) . '</td>';
         echo '<td>' . htmlspecialchars($user['name']) . '</td>';
         echo '<td><a href="http://' . htmlspecialchars($user['address']) . '" target="_blank">' . htmlspecialchars($user['address']) . '</a></td>';

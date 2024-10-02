@@ -49,6 +49,7 @@ $userSecret = $client->query($secretQuery)->read();
 // Ensure the user was found
 if (isset($userSecret[0]['.id'])) {
     $userId = $userSecret[0]['.id'];
+    
 
     // Step 2: Update the user's profile using the .id from /ppp/secret
     $editQuery = (new Query('/ppp/secret/set'))
@@ -56,6 +57,7 @@ if (isset($userSecret[0]['.id'])) {
         ->equal('profile', $newProfile);
     
     $response = $client->query($editQuery)->read();
+    
 
     // Step 3: Check if the user is currently active and remove the active connection if found
     $activeQuery = (new Query('/ppp/active/print'))->where('name', $username);
@@ -176,9 +178,12 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
                 </form>
 
                 <h3>Active Users</h3>
+                 <!-- Bulk Update Form -->
+            <form id="bulkUpdateForm" action="bulk_update.php" method="POST">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th> cheklist</th>
                         <th><a href="javascript:void(0)" onclick="sortTable(0, 'activeUsersTableBody')">No</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(1, 'activeUsersTableBody')">Username</a></th>
                             <th><a href="javascript:void(0)" onclick="sortTable(2, 'activeUsersTableBody')">IP Address</a></th>
@@ -195,6 +200,8 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
                             // die();
                              ?>
                             <tr>
+                                <td><!-- Add Checkbox for Bulk Selection -->
+                                <input type="checkbox" name="user_ids[]" value="<?php echo $user['name']; ?>" class="form-check-input"></td>
                                 <td><?php echo ($index + 1); ?></td>
                                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                                 <td><a href="http://<?php echo htmlspecialchars($user['address']); ?>" target="_blank"><?php echo htmlspecialchars($user['address']); ?></a></td>
@@ -215,6 +222,21 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+                <!-- Bulk Action Controls -->
+            <div class="form-group">
+                <label for="newProfile">Change Profile for Selected Users:</label>
+                <select name="newProfile" id="newProfile" class="form-control">
+                    <option value="">-- Select Profile --</option>
+                    <?php foreach ($profiles as $profile): ?>
+                        <option value="<?php echo htmlspecialchars($profile['name']); ?>">
+                            <?php echo htmlspecialchars($profile['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Apply Bulk Update</button>
+        </form>
 
                 <!-- Pagination Controls -->
 <nav>
@@ -420,7 +442,7 @@ function initTrafficGauges() {
     var uploadCtx = document.getElementById('uploadGauge').getContext('2d');
 
      // Destroy existing Download Gauge if it exists
-     if (downloadGaugeChart) {
+    if (downloadGaugeChart) {
         downloadGaugeChart.destroy();
     }
 
