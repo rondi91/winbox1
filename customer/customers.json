@@ -1,0 +1,20 @@
+{
+    "customers": [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "phone": "08123456789",
+            "address": "1234 Elm St, Jakarta",
+            "pppoe_username": "user3"
+        },
+        {
+            "id": 2,
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "phone": "08198765432",
+            "address": "5678 Oak St, Bandung",
+            "pppoe_username": "user2"
+        }
+    ]
+}
