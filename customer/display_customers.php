@@ -1,4 +1,10 @@
 <?php
+require '../vendor/autoload.php'; // RouterOS API
+require '../config.php';          // Load MikroTik configuration
+
+use RouterOS\Client;
+use RouterOS\Query;
+
 // Function to load customer data from the JSON file
 function loadCustomers() {
     $customerFile = 'customers.json';
@@ -11,6 +17,22 @@ function loadCustomers() {
 
 // Load the customers from the JSON file
 $customerData = loadCustomers();
+
+// Fetch PPPoE accounts from MikroTik
+$client = new Client([
+    'host' => $mikrotikConfig['host'],
+    'user' => $mikrotikConfig['user'],
+    'pass' => $mikrotikConfig['pass'],
+]);
+
+$pppoeQuery = new Query("/ppp/secret/print");
+$pppoeAccounts = $client->query($pppoeQuery)->read();
+
+// Create a mapping from PPPoE ID to PPPoE username
+$pppoeMap = [];
+foreach ($pppoeAccounts as $pppoe) {
+    $pppoeMap[$pppoe['.id']] = $pppoe['name'];
+}
 
 ?>
 <!DOCTYPE html>
@@ -32,7 +54,7 @@ $customerData = loadCustomers();
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Address</th>
-                    <th>PPPoE Username (Unique ID)</th>
+                    <th>PPPoE Username</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -45,7 +67,7 @@ $customerData = loadCustomers();
                             <td><?php echo htmlspecialchars($customer['email']); ?></td>
                             <td><?php echo htmlspecialchars($customer['phone']); ?></td>
                             <td><?php echo htmlspecialchars($customer['address']); ?></td>
-                            <td><?php echo htmlspecialchars($customer['pppoe_username']); ?></td>
+                            <td><?php echo isset($pppoeMap[$customer['pppoe_id']]) ? htmlspecialchars($pppoeMap[$customer['pppoe_id']]) : 'N/A'; ?></td>
                             <td>
                                 <a href="edit_customer.php?id=<?php echo $customer['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
                             </td>
