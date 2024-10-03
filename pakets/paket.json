@@ -1,0 +1,40 @@
+{
+    "pakets": [
+        {
+            "id": 1,
+            "name": "Basic Plan",
+            "speed": "10Mbps",
+            "price": 100000
+        },
+        {
+            "id": 2,
+            "name": "Premium Plan",
+            "speed": "50Mbps",
+            "price": 200000
+        },
+        {
+            "id": 3,
+            "name": "2Mbps",
+            "speed": "2M",
+            "price": "100000"
+        },
+        {
+            "id": 4,
+            "name": "5Mbps",
+            "speed": "5M",
+            "price": "150000"
+        },
+        {
+            "id": 5,
+            "name": "10Mbps",
+            "speed": "5M",
+            "price": "200000"
+        },
+        {
+            "id": 6,
+            "name": "tes",
+            "speed": "5M",
+            "price": "100000"
+        }
+    ]
+}

@@ -1,14 +1,6 @@
 {
     "customers": [
         {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john@example.com",
-            "phone": "08123456789",
-            "address": "1234 Elm St, Jakarta",
-            "pppoe_id": "*4C"
-        },
-        {
             "id": 2,
             "name": "Jane Smith",
             "email": "jane@example.com",

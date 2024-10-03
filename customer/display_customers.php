@@ -70,6 +70,7 @@ foreach ($pppoeAccounts as $pppoe) {
                             <td><?php echo isset($pppoeMap[$customer['pppoe_id']]) ? htmlspecialchars($pppoeMap[$customer['pppoe_id']]) : 'N/A'; ?></td>
                             <td>
                                 <a href="edit_customer.php?id=<?php echo $customer['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
+                                <a href="delete_customer.php?id=<?php echo $customer['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
