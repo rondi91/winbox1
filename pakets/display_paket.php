@@ -31,6 +31,7 @@ $pakets = loadPakets();
                     <th>Package Name</th>
                     <th>Speed</th>
                     <th>Price (IDR)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,11 +42,15 @@ $pakets = loadPakets();
                             <td><?php echo htmlspecialchars($paket['name']); ?></td>
                             <td><?php echo htmlspecialchars($paket['speed']); ?></td>
                             <td><?php echo number_format($paket['price'], 0, ',', '.'); ?></td>
+                            <td>
+                                <a href="edit_paket.php?id=<?php echo $paket['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
+                                <a href="delete_paket.php?id=<?php echo $paket['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this package?');">Delete</a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="4" class="text-center">No packages found.</td>
+                        <td colspan="5" class="text-center">No packages found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

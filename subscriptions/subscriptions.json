@@ -1,0 +1,20 @@
+{
+    "subscriptions": [
+        {
+            "id": 2,
+            "customer_id": "2",
+            "paket_id": "3",
+            "start_date": "2024-10-03",
+            "end_date": "2024-10-03",
+            "status": "active"
+        },
+        {
+            "id": 2,
+            "customer_id": "3",
+            "paket_id": "4",
+            "start_date": "2024-10-03",
+            "end_date": "2024-10-03",
+            "status": "active"
+        }
+    ]
+}

@@ -1,18 +1,6 @@
 {
     "pakets": [
         {
-            "id": 1,
-            "name": "Basic Plan",
-            "speed": "10Mbps",
-            "price": 100000
-        },
-        {
-            "id": 2,
-            "name": "Premium Plan",
-            "speed": "50Mbps",
-            "price": 200000
-        },
-        {
             "id": 3,
             "name": "2Mbps",
             "speed": "2M",
@@ -31,9 +19,9 @@
             "price": "200000"
         },
         {
-            "id": 6,
-            "name": "tes",
-            "speed": "5M",
+            "id": 5,
+            "name": "tes2",
+            "speed": "7M (BONUS UPTO 7Mbps )",
             "price": "100000"
         }
     ]
