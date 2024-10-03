@@ -1,8 +1,8 @@
 {
     "subscriptions": [
         {
-            "id": 2,
-            "customer_id": "2",
+            "id": 1,
+            "customer_id": "3",
             "paket_id": "3",
             "start_date": "2024-10-03",
             "end_date": "2024-10-03",
@@ -10,8 +10,8 @@
         },
         {
             "id": 2,
-            "customer_id": "3",
-            "paket_id": "4",
+            "customer_id": "2",
+            "paket_id": "3",
             "start_date": "2024-10-03",
             "end_date": "2024-10-03",
             "status": "active"

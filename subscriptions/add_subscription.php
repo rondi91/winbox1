@@ -51,23 +51,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $endDate = $_POST['end_date'];
     $status = $_POST['status'];
 
-    // Create new subscription
-    $newSubscription = [
-        'id' => count($subscriptions['subscriptions']) + 1, // Auto-increment ID
-        'customer_id' => $customerId,
-        'paket_id' => $paketId,
-        'start_date' => $startDate,
-        'end_date' => $endDate,
-        'status' => $status,
-    ];
+    // Check if the customer already has an active subscription
+    foreach ($subscriptions['subscriptions'] as $subscription) {
+        if ($subscription['customer_id'] === $customerId && $subscription['status'] === 'active') {
+            $error = "The selected customer already has an active subscription.";
+            break;
+        }
+    }
 
-    // Append the new subscription and save to the JSON file
-    $subscriptions['subscriptions'][] = $newSubscription;
-    saveSubscriptions($subscriptions);
+    // If no active subscription, create a new subscription
+    if (!isset($error)) {
+        // Create new subscription
+        $newSubscription = [
+            'id' => count($subscriptions['subscriptions']) + 1, // Auto-increment ID
+            'customer_id' => $customerId,
+            'paket_id' => $paketId,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => $status,
+        ];
 
-    // Redirect to the subscription list page
-    header('Location: display_subscriptions.php');
-    exit;
+        // Append the new subscription and save to the JSON file
+        $subscriptions['subscriptions'][] = $newSubscription;
+        saveSubscriptions($subscriptions);
+
+        // Redirect to the subscription list page
+        header('Location: display_subscriptions.php');
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -81,6 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container mt-4">
         <h1 class="display-6 text-center">Add New Subscription</h1>
+        <?php if (isset($error)): ?>
+            <div class="alert alert-danger"><?php echo $error; ?></div>
+        <?php endif; ?>
         <form action="add_subscription.php" method="POST">
             <div class="mb-3">
                 <label for="customer_id" class="form-label">Customer</label>

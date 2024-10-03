@@ -15,6 +15,14 @@
             "phone": "082251781751",
             "address": "ds.mijen-ds.merbuh singorojo kendal",
             "pppoe_id": "*7"
+        },
+        {
+            "id": 3,
+            "name": "rondiyanto",
+            "email": "rondie94@gmail.com",
+            "phone": "082251781754",
+            "address": "ds.mijen-ds.merbuh singorojo kendal",
+            "pppoe_id": "*4C"
         }
     ]
 }

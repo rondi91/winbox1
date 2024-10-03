@@ -1,6 +1,43 @@
 <?php
-// Load existing subscriptions
+// Function to load existing data
+function loadCustomers() {
+    $customerFile = '../customer/customers.json';
+    if (file_exists($customerFile)) {
+        $jsonData = file_get_contents($customerFile);
+        return json_decode($jsonData, true);
+    }
+    return ['customers' => []];
+}
+
+function loadPakets() {
+    $paketFile = '../pakets/paket.json';
+    if (file_exists($paketFile)) {
+        $jsonData = file_get_contents($paketFile);
+        return json_decode($jsonData, true);
+    }
+    return ['pakets' => []];
+}
+
+function loadSubscriptions() {
+    $subscriptionFile = 'subscriptions.json';
+    if (file_exists($subscriptionFile)) {
+        $jsonData = file_get_contents($subscriptionFile);
+        return json_decode($jsonData, true);
+    }
+    return ['subscriptions' => []];
+}
+
+function saveSubscriptions($data) {
+    $subscriptionFile = 'subscriptions.json';
+    file_put_contents($subscriptionFile, json_encode($data, JSON_PRETTY_PRINT));
+}
+
+// Load existing data
+$customers = loadCustomers();
+$pakets = loadPakets();
 $subscriptions = loadSubscriptions();
+
+// Get subscription ID from query parameters
 $subscriptionId = isset($_GET['id']) ? $_GET['id'] : null;
 $subscription = null;
 
@@ -11,6 +48,11 @@ foreach ($subscriptions['subscriptions'] as $s) {
         break;
     }
 }
+// Create mapping for easy access to customer and package names
+$customerMap = [];
+foreach ($customers['customers'] as $customer) {
+    $customerMap[$customer['id']] = $customer['name'];
+}
 
 // Redirect if the subscription is not found
 if (!$subscription) {
@@ -20,20 +62,12 @@ if (!$subscription) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $customerId = $_POST['customer_id'];
-    $paketId = $_POST['paket_id'];
-    $startDate = $_POST['start_date'];
-    $endDate = $_POST['end_date'];
-    $status = $_POST['status'];
+    $newPaketId = $_POST['paket_id']; // Only allow changing the package
 
     // Update the subscription data
     foreach ($subscriptions['subscriptions'] as &$s) {
         if ($s['id'] == $subscriptionId) {
-            $s['customer_id'] = $customerId;
-            $s['paket_id'] = $paketId;
-            $s['start_date'] = $startDate;
-            $s['end_date'] = $endDate;
-            $s['status'] = $status;
+            $s['paket_id'] = $newPaketId; // Update only the package ID
             break;
         }
     }
@@ -41,11 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Location: display_subscriptions.php'); // Redirect to subscription list
     exit;
 }
-
-// Load customers and packages
-$customers = loadCustomers();
-$pakets = loadPakets();
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -61,14 +90,7 @@ $pakets = loadPakets();
         <form action="edit_subscription.php?id=<?php echo $subscriptionId; ?>" method="POST">
             <div class="mb-3">
                 <label for="customer_id" class="form-label">Customer</label>
-                <select class="form-select" id="customer_id" name="customer_id" required>
-                    <option value="">-- Select Customer --</option>
-                    <?php foreach ($customers['customers'] as $customer): ?>
-                        <option value="<?php echo htmlspecialchars($customer['id']); ?>" <?php echo ($customer['id'] === $subscription['customer_id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($customer['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <input type="text" class="form-control" id="customer_id" value="<?php echo htmlspecialchars($customerMap[$subscription['customer_id']] ?? 'N/A'); ?>" readonly>
             </div>
 
             <div class="mb-3">
@@ -85,20 +107,17 @@ $pakets = loadPakets();
 
             <div class="mb-3">
                 <label for="start_date" class="form-label">Start Date</label>
-                <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo htmlspecialchars($subscription['start_date']); ?>" required>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo htmlspecialchars($subscription['start_date']); ?>" readonly>
             </div>
 
             <div class="mb-3">
                 <label for="end_date" class="form-label">End Date</label>
-                <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo htmlspecialchars($subscription['end_date']); ?>" required>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo htmlspecialchars($subscription['end_date']); ?>" readonly>
             </div>
 
             <div class="mb-3">
                 <label for="status" class="form-label">Status</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="active" <?php echo ($subscription['status'] === 'active') ? 'selected' : ''; ?>>Active</option>
-                    <option value="inactive" <?php echo ($subscription['status'] === 'inactive') ? 'selected' : ''; ?>>Inactive</option>
-                </select>
+                <input type="text" class="form-control" id="status" value="<?php echo htmlspecialchars($subscription['status']); ?>" readonly>
             </div>
 
             <button type="submit" class="btn btn-primary">Save Changes</button>
