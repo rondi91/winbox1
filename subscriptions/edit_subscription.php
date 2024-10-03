@@ -1,4 +1,10 @@
 <?php
+require '../vendor/autoload.php'; // Load RouterOS API
+require '../config.php';          // Load MikroTik configuration
+
+use RouterOS\Client;
+use RouterOS\Query;
+
 // Function to load existing data
 function loadCustomers() {
     $customerFile = '../customer/customers.json';
@@ -17,6 +23,7 @@ function loadPakets() {
     }
     return ['pakets' => []];
 }
+
 
 function loadSubscriptions() {
     $subscriptionFile = 'subscriptions.json';
@@ -37,6 +44,15 @@ $customers = loadCustomers();
 $pakets = loadPakets();
 $subscriptions = loadSubscriptions();
 
+$customerMap = [];
+foreach ($customers['customers'] as $customer) {
+    $customerMap[$customer['id']] = $customer['name'];
+}
+$paketMap = [];
+foreach ($pakets['pakets'] as $paket) {
+    $paketMap[$paket['id']] = $paket['name'];
+}
+
 // Get subscription ID from query parameters
 $subscriptionId = isset($_GET['id']) ? $_GET['id'] : null;
 $subscription = null;
@@ -48,17 +64,19 @@ foreach ($subscriptions['subscriptions'] as $s) {
         break;
     }
 }
-// Create mapping for easy access to customer and package names
-$customerMap = [];
-foreach ($customers['customers'] as $customer) {
-    $customerMap[$customer['id']] = $customer['name'];
-}
 
 // Redirect if the subscription is not found
 if (!$subscription) {
     header('Location: display_subscriptions.php');
     exit;
 }
+
+// Connect to MikroTik
+$client = new Client([
+    'host' => $mikrotikConfig['host'],
+    'user' => $mikrotikConfig['user'],
+    'pass' => $mikrotikConfig['pass'],
+]);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -71,6 +89,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         }
     }
+
+    // Get the new profile from the package (assuming each package has a corresponding profile)
+    $newProfile = null;
+    foreach ($pakets['pakets'] as $paket) {
+     
+        if ($paket['id'] == $newPaketId) {
+            $newProfile = $paket['speed']; // Assuming 'speed' is the profile name in your package
+            break;
+        }
+    }
+    
+    
+
+    // Update the PPPoE profile on MikroTik for the associated customer
+    if ($newProfile) {
+
+        $cust_id = $subscription['customer_id']; // Get the username from the subscription
+        $custname = null;
+        foreach ($customers['customers'] as $customer) {
+            if ($customer['id'] == $cust_id) {
+                $custname = $customer['pppoe_id']; // Assuming 'speed' is the profile name in your package
+                break;
+            }
+        }
+        // var_dump($custname);
+        // die();
+        
+        $updateQuery = (new Query("/ppp/secret/set"))
+            ->equal('.id', $custname) // Use the customer's username
+            ->equal('profile', $newProfile); // Set the new profile
+
+        // Send the update request to MikroTik
+        $client->query($updateQuery)->read();
+    }
+
+    // Save the updated subscription data
     saveSubscriptions($subscriptions); // Save the updated data
     header('Location: display_subscriptions.php'); // Redirect to subscription list
     exit;

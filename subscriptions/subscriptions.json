@@ -15,6 +15,14 @@
             "start_date": "2024-10-03",
             "end_date": "2024-10-03",
             "status": "active"
+        },
+        {
+            "id": 3,
+            "customer_id": "4",
+            "paket_id": "4",
+            "start_date": "2024-10-03",
+            "end_date": "2024-10-03",
+            "status": "active"
         }
     ]
 }
