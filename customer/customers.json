@@ -1,28 +1,44 @@
 {
     "customers": [
         {
-            "id": 2,
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "phone": "08198765432",
-            "address": "5678 Oak St, Bandung",
-            "pppoe_id": "*D"
+            "id": 1,
+            "name": "IPAH SUPRI",
+            "email": "ipah@gmail.com",
+            "phone": "082251781754",
+            "address": "ds.mijen-ds.merbuh singorojo kendal",
+            "pppoe_id": "*C"
         },
         {
-            "id": 3,
+            "id": 2,
             "name": "siswati",
-            "email": "siswati@gmail.com",
-            "phone": "082251781751",
+            "email": "siswaati@gmail.com",
+            "phone": "082251781754",
             "address": "ds.mijen-ds.merbuh singorojo kendal",
             "pppoe_id": "*7"
         },
         {
-            "id": 4,
-            "name": "rondiyanto",
-            "email": "rondie94@gmail.com",
+            "id": 3,
+            "name": "SOLEKAH",
+            "email": "solekah@gmail.com",
             "phone": "082251781754",
             "address": "ds.mijen-ds.merbuh singorojo kendal",
-            "pppoe_id": "*4C"
+            "pppoe_id": "*30"
+        },
+        {
+            "id": 4,
+            "name": "LEKWID",
+            "email": "WIDYA@gmail.com",
+            "phone": "082251781754",
+            "address": "ds.mijen-ds.merbuh singorojo kendal",
+            "pppoe_id": "*17"
+        },
+        {
+            "id": 5,
+            "name": "arum",
+            "email": "arum@gmail.com",
+            "phone": "082251781754",
+            "address": "ds.mijen-ds.merbuh singorojo kendal",
+            "pppoe_id": "*31"
         }
     ]
 }
