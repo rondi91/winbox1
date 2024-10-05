@@ -39,6 +39,15 @@
             "phone": "082251781754",
             "address": "ds.mijen-ds.merbuh singorojo kendal",
             "pppoe_id": "*31"
+        },
+        {
+            "id": 6,
+            "name": "lupi safari",
+            "email": "lupi@gmail.com",
+            "phone": "082251781754",
+            "address": "ds.mijen-ds.merbuh singorojo kendal",
+            "pppoe_id": "*18",
+            "paket_id": "4"
         }
     ]
 }
