@@ -1,10 +1,11 @@
 <?php
 require '../vendor/autoload.php'; // RouterOS API
 require '../config.php';          // Load MikroTik configuration
-require '../paths.php';              // Include the file paths
+require '../paths.php';  
 
 use RouterOS\Client;
 use RouterOS\Query;
+// $customersFilePath = 'customers.json';
 
 // Function to load customer data from the JSON file
 function loadCustomers() {
@@ -53,26 +54,31 @@ function saveSubscriptions($data) {
     file_put_contents($subscriptionFile, json_encode($data, JSON_PRETTY_PRINT));
 }
 
-// Load existing customers, packages, and subscriptions
+// Load existing customers and packages
 $customers = loadCustomers();
 $subscriptions = loadSubscriptions();
 $pakets = loadPakets();
 
-// Connect to MikroTik
+
+
+// Fetch PPPoE accounts from MikroTik
 $client = new Client([
     'host' => $mikrotikConfig['host'],
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
 
-// Function to create a PPPoE account
-function createPppoeAccount($client, $username, $password, $profile) {
-    $query = (new Query('/ppp/secret/add'))
-        ->equal('name', $username)
-        ->equal('password', $password)
-        ->equal('profile', $profile); // Set profile according to selected package
+$pppoeQuery = new Query("/ppp/secret/print");
+$pppoeAccounts = $client->query($pppoeQuery)->read();
 
-    return $client->query($query)->read();
+// Function to check if the PPPoE ID is already assigned to another customer
+function isPppoeIdTaken($pppoe_id, $customers) {
+    foreach ($customers['customers'] as $customer) {
+        if ($customer['pppoe_id'] === $pppoe_id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Handle form submission
@@ -81,26 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $address = $_POST['address'];
-    $pppoeUsername = $_POST['pppoe_username']; // PPPoE username entered in the form
-    $pppoePassword = $_POST['pppoe_password']; // PPPoE password entered in the form
-    $paketId = $_POST['paket_id']; // Selected package
+    $pppoe_id = $_POST['pppoe_id']; // PPPoE ID selected from dropdown
+    $paket_id = $_POST['paket_id']; // Paket selected from dropdown
 
-    // Fetch the selected package profile
-    foreach ($pakets as $paket) {
-        if ($paket['id'] == $paketId) {
-            $profile = $paket['speed']; // Assume 'name' of the package is the profile in MikroTik
-            break;
-        }
-    }
-
-    // var_dump($profile);
-    // die();
-
-    // Create the PPPoE account in MikroTik
-    $pppoeResult = createPppoeAccount($client, $pppoeUsername, $pppoePassword, $profile);
-
-    if (isset($pppoeResult['!trap'])) {
-        $error = "Failed to create PPPoE account: " . $pppoeResult['!trap'][0]['message'];
+    // Check if the PPPoE ID is already in use
+    if (isPppoeIdTaken($pppoe_id, $customers)) {
+        $error = "The selected PPPoE ID is already assigned to another customer.";
     } else {
         // Add new customer to the JSON file
         $newCustomer = [
@@ -109,8 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'email' => $email,
             'phone' => $phone,
             'address' => $address,
-            'pppoe_id' => $pppoeUsername, // Save PPPoE username
-            'paket_id' => $paketId // Save selected package ID
+            'pppoe_id' => $pppoe_id,
+            'paket_id' => $paket_id // Include the selected Paket ID
         ];
 
         // Append the new customer and save to the JSON file
@@ -121,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newSubscription = [
             'id' => count($subscriptions) + 1,
             'customer_id' => $newCustomer['id'],  // Associate with the new customer
-            'paket_id' => $paketId,
+            'paket_id' => $paket_id,
             'start_date' => date('Y-m-d'), // Current date as the start date
             'end_date' => date('Y-m-d', strtotime('+1 month')), // Example: 1 month subscription
             'status' => 'active'
@@ -136,7 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -181,14 +172,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="address" name="address" required>
             </div>
 
-            <!-- Input fields for PPPoE username and password -->
+            <!-- Searchable Dropdown for selecting PPPoE Username -->
             <div class="mb-3">
-                <label for="pppoe_username" class="form-label">PPPoE Username</label>
-                <input type="text" class="form-control" id="pppoe_username" name="pppoe_username" required>
-            </div>
-            <div class="mb-3">
-                <label for="pppoe_password" class="form-label">PPPoE Password</label>
-                <input type="password" class="form-control" id="pppoe_password" name="pppoe_password" required>
+                <label for="pppoe_id" class="form-label">PPPoE Username</label>
+                <select class="form-select" id="pppoe_id" name="pppoe_id" required>
+                    <option value="">-- Select PPPoE User --</option>
+                    <?php foreach ($pppoeAccounts as $pppoe): ?>
+                        <option value="<?php echo htmlspecialchars($pppoe['.id']); ?>">
+                            <?php echo htmlspecialchars($pppoe['name']); ?> (<?php echo htmlspecialchars($pppoe['profile']); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="form-text text-muted">Select the PPPoE username (will save the unique ID).</small>
             </div>
 
             <!-- Dropdown for selecting Paket -->
@@ -213,7 +208,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // Initialize Select2 on the Paket select dropdown
+        // Initialize Select2 on the PPPoE and Paket select dropdowns
+        $('#pppoe_id').select2({
+            placeholder: "Select a PPPoE User",
+            allowClear: true
+        });
         $('#paket_id').select2({
             placeholder: "Select a Package",
             allowClear: true

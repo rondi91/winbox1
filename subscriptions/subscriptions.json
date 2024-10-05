@@ -39,6 +39,22 @@
             "start_date": "2024-10-05",
             "end_date": "2024-11-05",
             "status": "active"
+        },
+        {
+            "id": 6,
+            "customer_id": 7,
+            "paket_id": "4",
+            "start_date": "2024-10-05",
+            "end_date": "2024-11-05",
+            "status": "active"
+        },
+        {
+            "id": 7,
+            "customer_id": 7,
+            "paket_id": "3",
+            "start_date": "2024-10-05",
+            "end_date": "2024-11-05",
+            "status": "active"
         }
     ]
 }

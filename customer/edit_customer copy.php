@@ -40,85 +40,55 @@ if (!$customer) {
     exit;
 }
 
-// Connect to MikroTik
+// Fetch PPPoE accounts from MikroTik
 $client = new Client([
     'host' => $mikrotikConfig['host'],
     'user' => $mikrotikConfig['user'],
     'pass' => $mikrotikConfig['pass'],
 ]);
 
-// Function to get PPPoE account info from MikroTik
-function getPppoeAccount($client, $pppoeId) {
-    $query = new Query('/ppp/secret/print');
-    $query->where('.id', $pppoeId);
-    $response = $client->query($query)->read();
-    
-    
-    if (isset($response[0])) {
-        return $response[0];  // Return the PPPoE account details
+$pppoeQuery = new Query("/ppp/secret/print");
+$pppoeAccounts = $client->query($pppoeQuery)->read();
+
+// Function to check if the PPPoE ID is already assigned to another customer
+function isPppoeIdTaken($pppoe_id, $customerId, $customers) {
+    foreach ($customers['customers'] as $customer) {
+        // Check if PPPoE ID is used by another customer (not the one being edited)
+        if ($customer['pppoe_id'] === $pppoe_id && $customer['id'] != $customerId) {
+            return true;
+        }
     }
-    return null;
+    return false;
 }
-$pppoeallQuery = new Query("/ppp/secret/print");
-$pppoeallAccounts = $client->query($pppoeallQuery)->read();
 
-// var_dump($pppoeallAccounts);
-// die();
-
-// Fetch PPPoE account info from MikroTik based on the saved PPPoE ID
-$pppoeAccount = getPppoeAccount($client, $customer['pppoe_id']);
-
-
-// If the PPPoE account is found, populate the username for editing
-$pppoeUsername = isset($pppoeAccount['name']) ? $pppoeAccount['name'] : '';
-$pppoePassword = '';  // Passwords are typically not retrievable, so it will be left empty
-
-// If the form is submitted, update the customer and PPPoE account
+// If the form is submitted, update the customer
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $address = $_POST['address'];
-    $pppoeUsername = $_POST['pppoe_username']; // PPPoE username entered in the form
-    $pppoePassword = $_POST['pppoe_password']; // PPPoE password entered in the form
-    $pppoeId = $_POST['pppoe_id']; // PPPoE ID from the dropdown
+    $pppoe_id = $_POST['pppoe_id']; // PPPoE ID selected from the dropdown
 
-    // Update the PPPoE account in MikroTik
-    $updateQuery = (new Query('/ppp/secret/set'))
-        ->equal('.id', $pppoeId)
-        ->equal('name', $pppoeUsername);
-
-    // Only update the password if a new one is entered
-    if (!empty($pppoePassword)) {
-        $updateQuery->equal('password', $pppoePassword);
-    }
-
-    $updateResult = $client->query($updateQuery)->read();
-
-    if (isset($updateResult['!trap'])) {
-        $error = "Failed to update PPPoE account: " . $updateResult['!trap'][0]['message'];
+    // Check if the PPPoE ID is already in use by another customer
+    if (isPppoeIdTaken($pppoe_id, $customerId, $customers)) {
+        $error = "The selected PPPoE ID is already assigned to another customer.";
     } else {
-        // Update the customer data in the JSON file
+        // Update the customer data
         foreach ($customers['customers'] as &$c) {
             if ($c['id'] == $customerId) {
                 $c['name'] = $name;
                 $c['email'] = $email;
                 $c['phone'] = $phone;
                 $c['address'] = $address;
-                $c['pppoe_id'] = $pppoeId;  // Save the PPPoE ID
-                $c['pppoe_username'] = $pppoeUsername;  // Save the new PPPoE username
+                $c['pppoe_id'] = $pppoe_id;
                 break;
             }
         }
-
         saveCustomers($customers);
         header('Location: display_customers.php');
         exit;
     }
 }
-
-// var_dump($pppoeAccount);
-// die()
 
 ?>
 <!DOCTYPE html>
@@ -128,6 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Customer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Select2 CSS for searchable dropdown -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container mt-4">
@@ -153,23 +125,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($customer['address']); ?>" required>
             </div>
 
-            <!-- Input fields for PPPoE username and password -->
+            <!-- Dropdown for selecting the PPPoE Username but submitting the PPPoE ID -->
             <div class="mb-3">
-                <label for="pppoe_username" class="form-label">PPPoE Username</label>
-                <input type="text" class="form-control" id="pppoe_username" name="pppoe_username" value="<?php echo htmlspecialchars($pppoeUsername); ?>" required>
-            </div>
-            <div class="mb-3">
-                <label for="pppoe_password" class="form-label">PPPoE Password</label>
-                <input type="password" class="form-control" id="pppoe_password" name="pppoe_password" placeholder="Enter new password (if changing)">
-            </div>
-   
-           <!-- Dropdown for selecting the PPPoE Username but submitting the PPPoE ID -->
-           <div class="mb-3">
                 <label for="pppoe_id" class="form-label">PPPoE Username</label>
                 <select class="form-select" id="pppoe_id" name="pppoe_id" required>
-
-                
-                    <?php foreach ($pppoeallAccounts as $pppoe): ?>
+                    
+                    <?php foreach ($pppoeAccounts as $pppoe): ?>
                         <option value="<?php echo htmlspecialchars($pppoe['.id']); ?>" <?php echo ($pppoe['.id'] === $customer['pppoe_id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($pppoe['name']); ?> (<?php echo htmlspecialchars($pppoe['profile']); ?>)
                         </option>
@@ -183,7 +144,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
-    <!-- Include Bootstrap JS -->
+    <!-- Include Bootstrap JS and Select2 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Initialize Select2 on the PPPoE select dropdown
+        $('#pppoe_id').select2({
+            placeholder: "Select a PPPoE User",
+            allowClear: true
+        });
+    </script>
 </body>
 </html>
