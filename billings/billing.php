@@ -60,7 +60,6 @@ if (!empty($searchQuery)) {
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,18 +67,16 @@ if (!empty($searchQuery)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Billing Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery for AJAX -->
 </head>
 <body>
     <div class="container mt-4">
         <h1 class="display-6 text-center">Billing Management</h1>
 
-        <!-- Search Form -->
-        <form action="billing.php" method="GET" class="mb-4">
-            <div class="input-group">
-                <input type="text" class="form-control" name="search" placeholder="Search by customer, subscription ID, or status" value="<?php echo htmlspecialchars($searchQuery); ?>">
-                <button type="submit" class="btn btn-primary">Search</button>
-            </div>
-        </form>
+        <!-- Live Search Form -->
+        <div class="mb-4">
+            <input type="text" class="form-control" id="liveSearch" placeholder="Search by customer, subscription ID, or status">
+        </div>
 
         <!-- Link to Add New Billing -->
         <a href="add_billing.php" class="btn btn-success mb-4">Add New Billing</a>
@@ -98,43 +95,67 @@ if (!empty($searchQuery)) {
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php if (count($filteredBillings) > 0): ?>
-                    <?php foreach ($filteredBillings as $billing): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($billing['billing_id']); ?></td>
-                            <td> <?php
-                                    $customerName = 'N/A'; // Default value
-                                    foreach ($customers['customers'] as $customer) {
-                                        if ($customer['id'] == $billing['customer_id']) {
-                                            $customerName = $customer['name'];
-                                            break;
-                                        }
-                                    }
-                                    echo htmlspecialchars($customerName);
-                                ?></td>
-                            <td><?php echo htmlspecialchars($billing['subscription_id']); ?></td>
-                            <td><?php echo htmlspecialchars($billing['billing_date']); ?></td>
-                            <td><?php echo htmlspecialchars($billing['due_date']); ?></td>
-                            <td><?php echo htmlspecialchars($billing['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($billing['status']); ?></td>
-                            <td>
-                                <a href="edit_billing.php?id=<?php echo $billing['billing_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                                <a href="billing.php?delete_id=<?php echo $billing['billing_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this billing record?');">Delete</a>
-                                <?php if ($billing['status'] === 'unpaid'): ?>
-                                    <a href="../payments/payment_detail.php?billing_id=<?php echo $billing['billing_id']; ?>" class="btn btn-success btn-sm">Pay Now</a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="8" class="text-center">No billing records found.</td>
-                    </tr>
-                <?php endif; ?>
+            <tbody id="billingResults">
+                <!-- Results will be displayed here dynamically -->
             </tbody>
         </table>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            // Live search function
+            $('#liveSearch').on('keyup', function(){
+                let query = $(this).val();
+
+                // AJAX request to live_search.php
+                $.ajax({
+                    url: 'live_search.php',
+                    type: 'GET',
+                    data: { search: query },
+                    success: function(response){
+                        // Clear previous results
+                        $('#billingResults').empty();
+
+                        // Check if there are results
+                        if(response.length > 0) {
+                            $.each(response, function(index, billing){
+                                let customerName = 'N/A';
+
+                                // Find the customer name
+                                <?php foreach ($customers['customers'] as $customer): ?>
+                                    if(billing.customer_id == "<?php echo $customer['id']; ?>") {
+                                        customerName = "<?php echo $customer['name']; ?>";
+                                    }
+                                <?php endforeach; ?>
+
+                                // Append new rows to the table
+                                $('#billingResults').append(`
+                                    <tr>
+                                        <td>${billing.billing_id}</td>
+                                        <td>${customerName}</td>
+                                        <td>${billing.subscription_id}</td>
+                                        <td>${billing.billing_date}</td>
+                                        <td>${billing.due_date}</td>
+                                        <td>${billing.amount}</td>
+                                        <td>${billing.status}</td>
+                                        <td>
+                                            <a href="edit_billing.php?id=${billing.billing_id}" class="btn btn-warning btn-sm">Edit</a>
+                                            <a href="billing.php?delete_id=${billing.billing_id}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this billing record?');">Delete</a>
+                                            ${billing.status === 'unpaid' ? `<a href="../payments/payment_detail.php?billing_id=${billing.billing_id}" class="btn btn-success btn-sm">Pay Now</a>` : ''}
+                                        </td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            // No results found
+                            $('#billingResults').append('<tr><td colspan="8" class="text-center">No billing records found.</td></tr>');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
