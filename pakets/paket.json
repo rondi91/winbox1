@@ -1,28 +1,28 @@
 {
     "pakets": [
         {
-            "id": 3,
-            "name": "2Mbps",
+            "id": 1,
+            "name": "2 Mbps",
             "speed": "2M",
             "price": "100000"
         },
         {
-            "id": 4,
-            "name": "5Mbps",
+            "id": 2,
+            "name": "5 Mbps",
             "speed": "5M",
             "price": "150000"
         },
         {
-            "id": 5,
-            "name": "10Mbps",
-            "speed": "5M",
+            "id": 3,
+            "name": "10 Mbps",
+            "speed": "10M",
             "price": "200000"
         },
         {
-            "id": 5,
-            "name": "tes2",
+            "id": 4,
+            "name": "7 Mbps BONUS UP TO ",
             "speed": "7M (BONUS UPTO 7Mbps )",
-            "price": "100000"
+            "price": "150000"
         }
     ]
 }

@@ -32,49 +32,35 @@ function loadBillings() {
     return ['billings' => []];
 }
 
-// Function to save billing data to the JSON file
-function saveBillings($data) {
-    $billingFile = 'billing.json';
-    file_put_contents($billingFile, json_encode($data, JSON_PRETTY_PRINT));
-}
-
 // Load existing data
 $customers = loadCustomers();
 $subscriptions = loadSubscriptions();
 $billings = loadBillings();
 
-// Handle form submission for creating a new billing record
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'add') {
-        $newBilling = [
-            'billing_id' => count($billings['billings']) + 1, // Auto-increment ID
-            'customer_id' => $_POST['customer_id'],
-            'subscription_id' => $_POST['subscription_id'],
-            'billing_date' => $_POST['billing_date'],
-            'due_date' => $_POST['due_date'],
-            'amount' => $_POST['amount'],
-            'status' => $_POST['status'],
-        ];
+// Handle search functionality
+$searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
+$filteredBillings = $billings['billings'];
 
-        // Append the new billing and save to the JSON file
-        $billings['billings'][] = $newBilling;
-        saveBillings($billings);
-        header('Location: billing.php'); // Redirect to the same page
-        exit;
-    }
-}
+// If there's a search query, filter the results
+if (!empty($searchQuery)) {
+    $filteredBillings = array_filter($billings['billings'], function($billing) use ($searchQuery, $customers) {
+        $customerName = 'N/A';
+        foreach ($customers['customers'] as $customer) {
+            if ($customer['id'] == $billing['customer_id']) {
+                $customerName = $customer['name'];
+                break;
+            }
+        }
 
-// Handle deletion of a billing record
-if (isset($_GET['delete_id'])) {
-    $deleteId = $_GET['delete_id'];
-    $billings['billings'] = array_filter($billings['billings'], function($billing) use ($deleteId) {
-        return $billing['billing_id'] != $deleteId;
+        // Check if the search query matches customer name, subscription ID, or status
+        return stripos($customerName, $searchQuery) !== false ||
+               stripos($billing['subscription_id'], $searchQuery) !== false ||
+               stripos($billing['status'], $searchQuery) !== false;
     });
-    saveBillings($billings);
-    header('Location: billing.php'); // Redirect to the same page
-    exit;
 }
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,59 +73,23 @@ if (isset($_GET['delete_id'])) {
     <div class="container mt-4">
         <h1 class="display-6 text-center">Billing Management</h1>
 
-        <!-- Add New Billing Form -->
-        <form action="billing.php" method="POST" class="mb-4">
-            <input type="hidden" name="action" value="add">
-            <div class="mb-3">
-                <label for="customer_id" class="form-label">Customer</label>
-                <select class="form-select" id="customer_id" name="customer_id" required>
-                    <option value="">-- Select Customer --</option>
-                    <?php foreach ($customers['customers'] as $customer): ?>
-                        <option value="<?php echo htmlspecialchars($customer['id']); ?>">
-                            <?php echo htmlspecialchars($customer['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+        <!-- Search Form -->
+        <form action="billing.php" method="GET" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" name="search" placeholder="Search by customer, subscription ID, or status" value="<?php echo htmlspecialchars($searchQuery); ?>">
+                <button type="submit" class="btn btn-primary">Search</button>
             </div>
-            <div class="mb-3">
-                <label for="subscription_id" class="form-label">Subscription</label>
-                <select class="form-select" id="subscription_id" name="subscription_id" required>
-                    <option value="">-- Select Subscription --</option>
-                    <?php foreach ($subscriptions['subscriptions'] as $subscription): ?>
-                        <option value="<?php echo htmlspecialchars($subscription['id']); ?>">
-                            <?php echo htmlspecialchars($subscription['id']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="billing_date" class="form-label">Billing Date</label>
-                <input type="date" class="form-control" id="billing_date" name="billing_date" required>
-            </div>
-            <div class="mb-3">
-                <label for="due_date" class="form-label">Due Date</label>
-                <input type="date" class="form-control" id="due_date" name="due_date" required>
-            </div>
-            <div class="mb-3">
-                <label for="amount" class="form-label">Amount</label>
-                <input type="number" class="form-control" id="amount" name="amount" required>
-            </div>
-            <div class="mb-3">
-                <label for="status" class="form-label">Status</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="paid">Paid</option>
-                    <option value="unpaid">Unpaid</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Billing</button>
         </form>
+
+        <!-- Link to Add New Billing -->
+        <a href="add_billing.php" class="btn btn-success mb-4">Add New Billing</a>
 
         <!-- Display Billing Records -->
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>Billing ID</th>
-                    <th>Customer name</th>
+                    <th>Customer Name</th>
                     <th>Subscription ID</th>
                     <th>Billing Date</th>
                     <th>Due Date</th>
@@ -149,12 +99,11 @@ if (isset($_GET['delete_id'])) {
                 </tr>
             </thead>
             <tbody>
-                <?php if (count($billings['billings']) > 0): ?>
-                    <?php foreach ($billings['billings'] as $billing): ?>
+                <?php if (count($filteredBillings) > 0): ?>
+                    <?php foreach ($filteredBillings as $billing): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($billing['billing_id']); ?></td>
                             <td> <?php
-                                    // Find the customer name from the customers array
                                     $customerName = 'N/A'; // Default value
                                     foreach ($customers['customers'] as $customer) {
                                         if ($customer['id'] == $billing['customer_id']) {

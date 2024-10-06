@@ -1,39 +1,25 @@
 {
-    "payments": [
-        {
-            "payment_id": 1,
+    "payments": {
+        "5": {
+            "payment_id": 6,
             "billing_id": "1",
-            "payment_date": "2024-10-05",
-            "amount": "100000",
+            "payment_date": "2024-10-06",
+            "amount": "150000",
             "payment_method": "cash"
         },
-        {
+        "6": {
             "payment_id": 2,
             "billing_id": "2",
-            "payment_date": "2024-10-05",
-            "amount": "100000",
+            "payment_date": "2024-10-06",
+            "amount": "150000",
             "payment_method": "cash"
         },
-        {
+        "7": {
             "payment_id": 3,
-            "billing_id": "3",
-            "payment_date": "2024-10-05",
-            "amount": "100000",
-            "payment_method": "cash"
-        },
-        {
-            "payment_id": 4,
-            "billing_id": "4",
-            "payment_date": "2024-10-05",
-            "amount": "100000",
-            "payment_method": "cash"
-        },
-        {
-            "payment_id": 5,
-            "billing_id": "5",
-            "payment_date": "2024-10-05",
-            "amount": "100000",
+            "billing_id": "6",
+            "payment_date": "2024-10-06",
+            "amount": "200000",
             "payment_method": "cash"
         }
-    ]
+    }
 }

@@ -45,13 +45,17 @@ foreach ($subscriptions['subscriptions'] as $subscription) {
         // Assuming the package details are stored in a packages.json file
         $packages = json_decode(file_get_contents('../pakets/paket.json'), true);
         $amount = 0;
+        
 
         foreach ($packages['pakets'] as $package) {
-            if ($package['id'] === $packageId) {
+            
+            if ($package['id'] == $packageId) {
                 $amount = $package['price']; // Assuming 'price' is a field in your packages
+               
                 break;
             }
         }
+        
 
         // Prepare the billing record
         $newBilling = [
