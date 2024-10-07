@@ -198,6 +198,10 @@ if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
         </form>
 
 
+        <!-- Export Report to Excel Button -->
+<a href="export_excel.php?report_month=<?php echo $reportMonth; ?>&report_year=<?php echo $reportYear; ?>" class="btn btn-success mb-4">Export to Excel</a>
+
+
         <!-- Link to Add New Billing -->
         <a href="add_billing.php" class="btn btn-success mb-4">Add New Billing</a>
 
