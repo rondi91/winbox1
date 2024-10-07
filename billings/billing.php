@@ -12,8 +12,48 @@ function loadCustomers() {
     return ['customers' => []];
 }
 
+// Function to load billing data from the JSON file
+function loadBillings() {
+    $billingFile = 'billing.json';
+    if (file_exists($billingFile)) {
+        $jsonData = file_get_contents($billingFile);
+        return json_decode($jsonData, true);
+    }
+    return ['billings' => []];
+}
+
+// Function to save billing data to the JSON file
+function saveBillings($data) {
+    $billingFile = 'billing.json';
+    file_put_contents($billingFile, json_encode($data, JSON_PRETTY_PRINT));
+}
+
 // Load customers at the start of the script
 $customers = loadCustomers();
+$billings = loadBillings();
+
+
+// Handle deletion by month and year
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_by_month') {
+    $deleteMonth = $_POST['delete_month'];
+    $deleteYear = $_POST['delete_year'];
+
+    // Filter out billing records that match the selected month and year
+    $billings['billings'] = array_filter($billings['billings'], function($billing) use ($deleteMonth, $deleteYear) {
+        $billingMonth = date('m', strtotime($billing['billing_date']));
+        $billingYear = date('Y', strtotime($billing['billing_date']));
+
+        // Keep only records that do not match the selected month and year
+        return !($billingMonth == $deleteMonth && $billingYear == $deleteYear);
+    });
+
+    // Save the updated billings back to the JSON file
+    saveBillings($billings);
+
+    // Redirect to the billing page after deletion
+    header('Location: billing.php');
+    exit;
+}
 
 ?>
 
@@ -61,6 +101,31 @@ $customers = loadCustomers();
                 </select>
             </div>
         </div>
+         <!-- Delete by Month and Year Form -->
+         <form action="billing.php" method="POST" class="mb-4">
+            <input type="hidden" name="action" value="delete_by_month">
+            <div class="row">
+                <div class="col-md-2">
+                    <select class="form-select" name="delete_month" required>
+                        <option value="">-- Select Month --</option>
+                        <?php for($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?php echo sprintf('%02d', $m); ?>"><?php echo date('F', mktime(0, 0, 0, $m, 1)); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="delete_year" required>
+                        <option value="">-- Select Year --</option>
+                        <?php for($y = date('Y') - 5; $y <= date('Y'); $y++): ?>
+                            <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger">Delete by Month</button>
+                </div>
+            </div>
+        </form>
 
         <!-- Link to Add New Billing -->
         <a href="add_billing.php" class="btn btn-success mb-4">Add New Billing</a>
