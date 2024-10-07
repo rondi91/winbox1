@@ -2,6 +2,12 @@
 require '../vendor/autoload.php'; // Load RouterOS API
 require '../config.php';          // Load MikroTik configuration
 
+
+ if (isset($_GET['import_success']) && $_GET['import_success'] == 1): ?>
+    <div class="alert alert-success">Excel file imported successfully!</div>
+<?php endif; 
+
+
 // Function to load customer data from the JSON file
 function loadCustomers() {
     $customerFile = '../customer/customers.json';
@@ -197,9 +203,23 @@ if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
             </div>
         </form>
 
+                        <!-- Form to Upload and Import Excel File -->
+                        <form action="import_excel.php" method="POST" enctype="multipart/form-data" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="file" name="excel_file" class="form-control" required accept=".xlsx, .xls">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Import Excel</button>
+                </div>
+            </div>
+        </form>
+
 
         <!-- Export Report to Excel Button -->
-<a href="export_excel.php?report_month=<?php echo $reportMonth; ?>&report_year=<?php echo $reportYear; ?>" class="btn btn-success mb-4">Export to Excel</a>
+        <a href="export_excel.php?report_month=<?php echo $reportMonth; ?>&report_year=<?php echo $reportYear; ?>" class="btn btn-success mb-4">Export to Excel</a>
+
+
 
 
         <!-- Link to Add New Billing -->
