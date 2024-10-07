@@ -26,27 +26,40 @@ function loadBillings() {
 $customers = loadCustomers();
 $billings = loadBillings();
 
-// Handle live search query
+// Get filters from the request
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
-$filteredBillings = $billings['billings'];
+$month = isset($_GET['month']) ? $_GET['month'] : date('m'); // Current month by default
+$year = isset($_GET['year']) ? $_GET['year'] : date('Y');     // Current year by default
+$status = isset($_GET['status']) ? $_GET['status'] : '';
 
-// If there's a search query, filter the results
-if (!empty($searchQuery)) {
-    $filteredBillings = array_filter($billings['billings'], function($billing) use ($searchQuery, $customers) {
-        $customerName = 'N/A';
-        foreach ($customers['customers'] as $customer) {
-            if ($customer['id'] == $billing['customer_id']) {
-                $customerName = $customer['name'];
-                break;
-            }
+// Filter billing records by month, year, status, and search query
+$filteredBillings = array_filter($billings['billings'], function($billing) use ($searchQuery, $customers, $month, $year, $status) {
+    // Filter by month and year
+    $billingMonth = date('m', strtotime($billing['billing_date']));
+    $billingYear = date('Y', strtotime($billing['billing_date']));
+
+    if ($billingMonth != $month || $billingYear != $year) {
+        return false;
+    }
+
+    // Filter by status
+    if ($status && $billing['status'] !== $status) {
+        return false;
+    }
+
+    // Search by customer name, subscription ID, or status
+    $customerName = 'N/A';
+    foreach ($customers['customers'] as $customer) {
+        if ($customer['id'] == $billing['customer_id']) {
+            $customerName = $customer['name'];
+            break;
         }
+    }
 
-        // Check if the search query matches customer name, subscription ID, or status
-        return stripos($customerName, $searchQuery) !== false ||
-               stripos($billing['subscription_id'], $searchQuery) !== false ||
-               stripos($billing['status'], $searchQuery) !== false;
-    });
-}
+    return stripos($customerName, $searchQuery) !== false ||
+           stripos($billing['subscription_id'], $searchQuery) !== false ||
+           stripos($billing['status'], $searchQuery) !== false;
+});
 
 // Return filtered results as JSON
 header('Content-Type: application/json');

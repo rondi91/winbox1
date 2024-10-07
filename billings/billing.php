@@ -12,54 +12,11 @@ function loadCustomers() {
     return ['customers' => []];
 }
 
-// Function to load subscription data from the JSON file
-function loadSubscriptions() {
-    $subscriptionFile = '../subscriptions/subscriptions.json';
-    if (file_exists($subscriptionFile)) {
-        $jsonData = file_get_contents($subscriptionFile);
-        return json_decode($jsonData, true);
-    }
-    return ['subscriptions' => []];
-}
-
-// Function to load billing data from the JSON file
-function loadBillings() {
-    $billingFile = 'billing.json';
-    if (file_exists($billingFile)) {
-        $jsonData = file_get_contents($billingFile);
-        return json_decode($jsonData, true);
-    }
-    return ['billings' => []];
-}
-
-// Load existing data
+// Load customers at the start of the script
 $customers = loadCustomers();
-$subscriptions = loadSubscriptions();
-$billings = loadBillings();
-
-// Handle search functionality
-$searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
-$filteredBillings = $billings['billings'];
-
-// If there's a search query, filter the results
-if (!empty($searchQuery)) {
-    $filteredBillings = array_filter($billings['billings'], function($billing) use ($searchQuery, $customers) {
-        $customerName = 'N/A';
-        foreach ($customers['customers'] as $customer) {
-            if ($customer['id'] == $billing['customer_id']) {
-                $customerName = $customer['name'];
-                break;
-            }
-        }
-
-        // Check if the search query matches customer name, subscription ID, or status
-        return stripos($customerName, $searchQuery) !== false ||
-               stripos($billing['subscription_id'], $searchQuery) !== false ||
-               stripos($billing['status'], $searchQuery) !== false;
-    });
-}
 
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,9 +30,36 @@ if (!empty($searchQuery)) {
     <div class="container mt-4">
         <h1 class="display-6 text-center">Billing Management</h1>
 
-        <!-- Live Search Form -->
-        <div class="mb-4">
-            <input type="text" class="form-control" id="liveSearch" placeholder="Search by customer, subscription ID, or status">
+        <!-- Filter Form -->
+        <div class="mb-4 row">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="liveSearch" placeholder="Search by customer, subscription ID, or status">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterMonth">
+                    <option value="">-- Select Month --</option>
+                    <?php for($m = 1; $m <= 12; $m++): ?>
+                        <option value="<?php echo sprintf('%02d', $m); ?>" <?php echo date('m') == $m ? 'selected' : ''; ?>>
+                            <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterYear">
+                    <option value="">-- Select Year --</option>
+                    <?php for($y = date('Y') - 5; $y <= date('Y'); $y++): ?>
+                        <option value="<?php echo $y; ?>" <?php echo date('Y') == $y ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterStatus">
+                    <option value="">-- Select Status --</option>
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                </select>
+            </div>
         </div>
 
         <!-- Link to Add New Billing -->
@@ -103,15 +87,31 @@ if (!empty($searchQuery)) {
 
     <script>
         $(document).ready(function(){
-            // Live search function
-            $('#liveSearch').on('keyup', function(){
-                let query = $(this).val();
+            // Load data on initial page load for the current month and year
+            loadBillingData();
+
+            // Trigger live search and filters
+            $('#liveSearch, #filterMonth, #filterYear, #filterStatus').on('change keyup', function(){
+                loadBillingData();
+            });
+
+            // Function to load billing data based on filters and search
+            function loadBillingData() {
+                let query = $('#liveSearch').val();
+                let month = $('#filterMonth').val();
+                let year = $('#filterYear').val();
+                let status = $('#filterStatus').val();
 
                 // AJAX request to live_search.php
                 $.ajax({
                     url: 'live_search.php',
                     type: 'GET',
-                    data: { search: query },
+                    data: {
+                        search: query,
+                        month: month,
+                        year: year,
+                        status: status
+                    },
                     success: function(response){
                         // Clear previous results
                         $('#billingResults').empty();
@@ -152,7 +152,7 @@ if (!empty($searchQuery)) {
                         }
                     }
                 });
-            });
+            }
         });
     </script>
 
