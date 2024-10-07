@@ -55,6 +55,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+
+// Other existing logic...
+
+// Handle report generation
+if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
+    $reportMonth = $_GET['report_month'];
+    $reportYear = $_GET['report_year'];
+
+    // Initialize report variables
+    $totalBillings = 0;
+    $totalAmount = 0;
+    $totalPaid = 0;
+    $totalUnpaid = 0;
+
+    // Filter billing records by the selected month and year
+    $reportData = array_filter($billings['billings'], function($billing) use ($reportMonth, $reportYear) {
+        $billingMonth = date('m', strtotime($billing['billing_date']));
+        $billingYear = date('Y', strtotime($billing['billing_date']));
+        return $billingMonth == $reportMonth && $billingYear == $reportYear;
+    });
+
+    // Calculate report totals
+    foreach ($reportData as $billing) {
+        $totalBillings++;
+        $totalAmount += $billing['amount'];
+        if ($billing['status'] === 'paid') {
+            $totalPaid++;
+        } else {
+            $totalUnpaid++;
+        }
+    }
+
+    // Display the report
+    echo "<div class='alert alert-info mt-4'>";
+    echo "<h4>Monthly Report for " . date('F', mktime(0, 0, 0, $reportMonth, 1)) . " $reportYear</h4>";
+    echo "<p>Total Billings: $totalBillings</p>";
+    echo "<p>Total Amount Billed: $$totalAmount</p>";
+    echo "<p>Total Paid: $totalPaid</p>";
+    echo "<p>Total Unpaid: $totalUnpaid</p>";
+    echo "</div>";
+}
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -126,6 +170,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
             </div>
         </form>
+
+
+                <!-- Generate Monthly Report Form -->
+        <form action="billing.php" method="GET" class="mb-4">
+            <div class="row">
+                <div class="col-md-2">
+                    <select class="form-select" name="report_month" required>
+                        <option value="">-- Select Month --</option>
+                        <?php for($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?php echo sprintf('%02d', $m); ?>"><?php echo date('F', mktime(0, 0, 0, $m, 1)); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="report_year" required>
+                        <option value="">-- Select Year --</option>
+                        <?php for($y = date('Y') - 5; $y <= date('Y'); $y++): ?>
+                            <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </div>
+            </div>
+        </form>
+
 
         <!-- Link to Add New Billing -->
         <a href="add_billing.php" class="btn btn-success mb-4">Add New Billing</a>
