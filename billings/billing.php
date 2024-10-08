@@ -301,7 +301,7 @@ if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
                                         <td>
                                             <a href="edit_billing.php?id=${billing.billing_id}" class="btn btn-warning btn-sm">Edit</a>
                                             <a href="billing.php?delete_id=${billing.billing_id}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this billing record?');">Delete</a>
-                                            ${billing.status === 'unpaid' ? `<a href="../payments/payment_detail.php?billing_id=${billing.billing_id}" class="btn btn-success btn-sm">Pay Now</a>` : ''}
+                                            ${billing.status === 'unpaid' ? `<a href="billing_detail.php?billing_id=${billing.billing_id}" class="btn btn-success btn-sm">Pay Now</a>` : `<a href="../payments/payment_detail.php?billing_id=${billing.billing_id}" class="btn btn-info btn-sm">Detail Payment</a>`}
                                         </td>
                                     </tr>
                                 `);
