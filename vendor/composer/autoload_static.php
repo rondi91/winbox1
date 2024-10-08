@@ -18,7 +18,9 @@ class ComposerStaticInit4abd5accc6e2e5e96995972e04cda07c
         'S' => 
         array (
             'Symfony\\Component\\Process\\' => 26,
+            'Svg\\' => 4,
             'Spatie\\Ssh\\' => 11,
+            'Sabberworm\\CSS\\' => 15,
         ),
         'R' => 
         array (
@@ -34,6 +36,15 @@ class ComposerStaticInit4abd5accc6e2e5e96995972e04cda07c
         'M' => 
         array (
             'Matrix\\' => 7,
+            'Masterminds\\' => 12,
+        ),
+        'F' => 
+        array (
+            'FontLib\\' => 8,
+        ),
+        'D' => 
+        array (
+            'Dompdf\\' => 7,
         ),
         'C' => 
         array (
@@ -54,9 +65,17 @@ class ComposerStaticInit4abd5accc6e2e5e96995972e04cda07c
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
         ),
+        'Svg\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',
+        ),
         'Spatie\\Ssh\\' => 
         array (
             0 => __DIR__ . '/..' . '/spatie/ssh/src',
+        ),
+        'Sabberworm\\CSS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
         ),
         'RouterOS\\' => 
         array (
@@ -83,6 +102,18 @@ class ComposerStaticInit4abd5accc6e2e5e96995972e04cda07c
         array (
             0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
         ),
+        'Masterminds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
+        'FontLib\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/php-font-lib/src/FontLib',
+        ),
+        'Dompdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
+        ),
         'Complex\\' => 
         array (
             0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
@@ -91,6 +122,7 @@ class ComposerStaticInit4abd5accc6e2e5e96995972e04cda07c
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Dompdf\\Cpdf' => __DIR__ . '/..' . '/dompdf/dompdf/lib/Cpdf.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

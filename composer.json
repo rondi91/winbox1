@@ -2,6 +2,7 @@
     "require": {
         "evilfreelancer/routeros-api-php": "^1.5",
         "phpoffice/phpspreadsheet": "^3.3",
-        "twilio/sdk": "^8.3"
+        "twilio/sdk": "^8.3",
+        "dompdf/dompdf": "^3.0"
     }
 }

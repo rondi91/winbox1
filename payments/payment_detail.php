@@ -104,6 +104,8 @@ if (!$customer) {
 
         <!-- Back to Billing Page -->
         <a href="../billings/billing.php" class="btn btn-secondary">Back to Billing Management</a>
+        <a href="receipt.php?billing_id=<?php echo $billing['billing_id']; ?>" class="btn btn-primary">Generate Receipt</a>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
