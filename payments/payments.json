@@ -1,60 +1,46 @@
 {
-    "payments": {
-        "5": {
-            "payment_id": 6,
+    "payments": [
+        {
+            "payment_id": 1,
             "billing_id": "1",
-            "payment_date": "2024-10-06",
+            "payment_date": "2024-10-08",
             "amount": "150000",
             "payment_method": "cash"
         },
-        "6": {
+        {
             "payment_id": 2,
             "billing_id": "2",
-            "payment_date": "2024-10-06",
+            "payment_date": "2024-10-08",
             "amount": "150000",
             "payment_method": "cash"
         },
-        "7": {
+        {
             "payment_id": 3,
-            "billing_id": "6",
-            "payment_date": "2024-10-06",
-            "amount": "200000",
-            "payment_method": "cash"
-        },
-        "8": {
-            "payment_id": 4,
             "billing_id": "3",
-            "payment_date": "2024-10-07",
+            "payment_date": "2024-10-08",
             "amount": "100000",
             "payment_method": "cash"
         },
-        "9": {
-            "payment_id": 5,
+        {
+            "payment_id": 4,
             "billing_id": "4",
             "payment_date": "2024-10-08",
             "amount": "100000",
             "payment_method": "cash"
         },
-        "10": {
-            "payment_id": 6,
+        {
+            "payment_id": 5,
             "billing_id": "5",
             "payment_date": "2024-10-08",
             "amount": "150000",
             "payment_method": "cash"
         },
-        "11": {
-            "payment_id": 7,
-            "billing_id": "10",
+        {
+            "payment_id": 6,
+            "billing_id": "6",
             "payment_date": "2024-10-08",
-            "amount": "100000",
-            "payment_method": "cash"
-        },
-        "12": {
-            "payment_id": 8,
-            "billing_id": "11",
-            "payment_date": "2024-10-08",
-            "amount": "150000",
+            "amount": "200000",
             "payment_method": "cash"
         }
-    }
+    ]
 }

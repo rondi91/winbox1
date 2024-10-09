@@ -1,5 +1,7 @@
 <?php
-require '../vendor/autoload.php'; // Include necessary dependencies if needed
+require '../vendor/autoload.php'; // Load the dompdf library
+
+use Dompdf\Dompdf;
 
 // Load billing and customer data
 function loadBillings() {
@@ -73,8 +75,8 @@ foreach ($customers['customers'] as $c) {
 $amount = intval($billing['amount']);
 $amountWords = strtoupper(terbilang($amount)) . ' RUPIAH';
 
-?>
-
+// Generate the HTML for the receipt
+$html = '
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,44 +92,41 @@ $amountWords = strtoupper(terbilang($amount)) . ' RUPIAH';
         .receipt {
             width: 100mm;
             height: 80mm;
-            margin: 0 auto;
-            padding: 10mm;
+            padding: 3mm; /* Reduced padding */
             border: 1px solid #ddd;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
             box-sizing: border-box;
         }
-        h1, h2, h4 {
+        h1 {
             text-align: center;
-            margin: 5px 0;
-            font-size: 12px;
+            margin: 0;
+            padding: 2px; /* Further reduced padding */
+            font-size: 11px;
         }
         .details {
-            margin-bottom: 10px;
+            width: 100%;
+            font-size: 9px;
+            margin-bottom: 5px;
         }
         .details th, .details td {
-            padding: 2px 5px;
+            padding: 1px 0; /* Further reduced padding */
             text-align: left;
-            font-size: 10px;
         }
         .total {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
+            margin-top: 3px; /* Reduce margin */
         }
         .footer {
-            margin-top: 10px;
+            margin-top: 3px; /* Reduced margin */
             text-align: center;
-            font-size: 8px;
+            font-size: 7px; /* Smaller footer */
             color: #888;
-        }
-        .highlight {
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="receipt">
         <h1>STRUK PEMBAYARAN TAGIHAN WIFI</h1>
-
         <table class="details">
             <tr>
                 <th>Tanggal Bayar:</th>
@@ -135,11 +134,11 @@ $amountWords = strtoupper(terbilang($amount)) . ' RUPIAH';
             </tr>
             <tr>
                 <th>No. Pelanggan:</th>
-                <td><?php echo htmlspecialchars($customer['id']); ?></td>
+                <td>' . htmlspecialchars($customer['id']) . '</td>
             </tr>
             <tr>
                 <th>Nama:</th>
-                <td><?php echo htmlspecialchars($customer['name']); ?></td>
+                <td>' . htmlspecialchars($customer['name']) . '</td>
             </tr>
             <tr>
                 <th>Kecepatan:</th>
@@ -153,16 +152,15 @@ $amountWords = strtoupper(terbilang($amount)) . ' RUPIAH';
                 <th>Admin Bank:</th>
                 <td>Rp. 0</td>
             </tr>
-            <tr class="highlight">
+            <tr class="total">
                 <th>Total:</th>
-                <td>Rp. <?php echo number_format($billing['amount'], 2, ',', '.'); ?></td>
+                <td>Rp. ' . number_format($billing['amount'], 2, ',', '.') . '</td>
             </tr>
             <tr>
                 <th>Terbilang:</th>
-                <td><?php echo $amountWords; ?></td>
+                <td>' . $amountWords . '</td>
             </tr>
         </table>
-
         <div class="footer">
             <p>“Terima kasih atas kepercayaan Anda membayar melalui loket kami.”</p>
             <p>Simpanlah struk ini sebagai bukti pembayaran Anda. Struk ini merupakan dokumen resmi.</p>
@@ -170,3 +168,17 @@ $amountWords = strtoupper(terbilang($amount)) . ' RUPIAH';
     </div>
 </body>
 </html>
+';
+
+// Initialize Dompdf and generate the PDF
+$dompdf = new Dompdf();
+$dompdf->loadHtml($html);
+
+// Set the paper size to 100mm x 80mm (283.465 points x 226.772 points)
+$dompdf->setPaper([0, 0, 283.465, 226.772], 'portrait');
+
+// Render the PDF
+$dompdf->render();
+
+// Output the generated PDF to the browser
+$dompdf->stream("receipt_" . $billing['billing_id'] . ".pdf", ["Attachment" => false]);

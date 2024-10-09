@@ -1,64 +1,3 @@
-<?php
-// Function to load payment data from the JSON file
-function loadPayments() {
-    $paymentFile = 'payments.json';
-    if (file_exists($paymentFile)) {
-        $jsonData = file_get_contents($paymentFile);
-        return json_decode($jsonData, true);
-    }
-    return ['payments' => []];
-}
-
-// Function to load billing data from the JSON file
-function loadBillings() {
-    $billingFile = '../billings/billing.json';
-    if (file_exists($billingFile)) {
-        $jsonData = file_get_contents($billingFile);
-        return json_decode($jsonData, true);
-    }
-    return ['billings' => []];
-}
-
-// Function to save payment data to the JSON file
-function savePayments($data) {
-    $paymentFile = 'payments.json';
-    file_put_contents($paymentFile, json_encode($data, JSON_PRETTY_PRINT));
-}
-
-// Load existing payments and billings
-$payments = loadPayments();
-$billings = loadBillings();
-
-// Handle form submission for creating a new payment record
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'add') {
-        $newPayment = [
-            'payment_id' => count($payments['payments']) + 1, // Auto-increment ID
-            'billing_id' => $_POST['billing_id'],
-            'payment_date' => date('Y-m-d'), // Current date
-            'amount' => $_POST['amount'],
-            'payment_method' => $_POST['payment_method'],
-        ];
-
-        // Append the new payment and save to the JSON file
-        $payments['payments'][] = $newPayment;
-        savePayments($payments);
-        header('Location: payments.php'); // Redirect to the same page
-        exit;
-    }
-}
-
-// Handle deletion of a payment record
-if (isset($_GET['delete_id'])) {
-    $deleteId = $_GET['delete_id'];
-    $payments['payments'] = array_filter($payments['payments'], function($payment) use ($deleteId) {
-        return $payment['payment_id'] != $deleteId;
-    });
-    savePayments($payments);
-    header('Location: payments.php'); // Redirect to the same page
-    exit;
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,39 +5,47 @@ if (isset($_GET['delete_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="container mt-4">
         <h1 class="display-6 text-center">Payment Management</h1>
 
-        <!-- Add New Payment Form -->
-        <form action="../payments/payments.php" method="POST" class="mb-4">
-            <input type="hidden" name="action" value="add">
-            <div class="mb-3">
-                <label for="billing_id" class="form-label">Billing ID</label>
-                <select class="form-select" id="billing_id" name="billing_id" required>
-                    <option value="">-- Select Billing --</option>
-                    <?php foreach ($billings['billings'] as $billing): ?>
-                        <option value="<?php echo htmlspecialchars($billing['billing_id']); ?>">
-                            <?php echo htmlspecialchars($billing['billing_id']); ?> - <?php echo htmlspecialchars($billing['amount']); ?>
+        <!-- Filter Form -->
+        <div class="mb-4 row">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="liveSearch" placeholder="Search by Billing ID or Customer Name">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterMonth">
+                    <option value="">-- Select Month --</option>
+                    <?php for($m = 1; $m <= 12; $m++): ?>
+                        <option value="<?php echo sprintf('%02d', $m); ?>">
+                            <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
                         </option>
-                    <?php endforeach; ?>
+                    <?php endfor; ?>
                 </select>
             </div>
-            <div class="mb-3">
-                <label for="amount" class="form-label">Amount</label>
-                <input type="number" class="form-control" id="amount" name="amount" required>
+            <div class="col-md-2">
+                <select class="form-select" id="filterYear">
+                    <option value="">-- Select Year --</option>
+                    <?php for($y = date('Y') - 5; $y <= date('Y'); $y++): ?>
+                        <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
+                    <?php endfor; ?>
+                </select>
             </div>
-            <div class="mb-3">
-                <label for="payment_method" class="form-label">Payment Method</label>
-                <select class="form-select" id="payment_method" name="payment_method" required>
+            <div class="col-md-2">
+                <select class="form-select" id="filterPaymentMethod">
+                    <option value="">-- Select Payment Method --</option>
                     <option value="cash">Cash</option>
                     <option value="credit_card">Credit Card</option>
                     <option value="bank_transfer">Bank Transfer</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Add Payment</button>
-        </form>
+        </div>
+
+        <!-- Add New Payment Button -->
+        <a href="add_payment.php" class="btn btn-success mb-4">Add New Payment</a>
 
         <!-- Display Payment Records -->
         <table class="table table-bordered table-striped">
@@ -106,34 +53,56 @@ if (isset($_GET['delete_id'])) {
                 <tr>
                     <th>Payment ID</th>
                     <th>Billing ID</th>
+                    <th>Customer Name</th>
+                    <th>Package</th>
                     <th>Payment Date</th>
                     <th>Amount</th>
                     <th>Payment Method</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php if (count($payments['payments']) > 0): ?>
-                    <?php foreach ($payments['payments'] as $payment): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
-                            <td><?php echo htmlspecialchars($payment['billing_id']); ?></td>
-                            <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
-                            <td><?php echo htmlspecialchars($payment['amount']); ?></td>
-                            <td><?php echo htmlspecialchars($payment['payment_method']); ?></td>
-                            <td>
-                                <a href="payments.php?delete_id=<?php echo $payment['payment_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this payment record?');">Delete</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6" class="text-center">No payment records found.</td>
-                    </tr>
-                <?php endif; ?>
+            <tbody id="paymentResults">
+                <!-- Results will be displayed here dynamically -->
             </tbody>
         </table>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            // Load initial payment data for the current month and year
+            loadPayments();
+
+            // Trigger live search and filters
+            $('#liveSearch, #filterMonth, #filterYear, #filterPaymentMethod').on('change keyup', function(){
+                loadPayments();
+            });
+
+            // Function to load payments based on filters and search query
+            function loadPayments() {
+                let search = $('#liveSearch').val();
+                let month = $('#filterMonth').val();
+                let year = $('#filterYear').val();
+                let paymentMethod = $('#filterPaymentMethod').val();
+
+                // AJAX request to live_search.php
+                $.ajax({
+                    url: 'live_search.php',
+                    type: 'GET',
+                    data: {
+                        search: search,
+                        month: month,
+                        year: year,
+                        payment_method: paymentMethod
+                    },
+                    success: function(response){
+                        // Populate the payment results table
+                        $('#paymentResults').html(response);
+                    }
+                });
+            }
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
