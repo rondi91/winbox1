@@ -1,10 +1,10 @@
 <?php
 // File paths for payments.json, billing.json, subscriptions.json, customers.json, and paket.json
-$paymentsFilePath = 'payments/payments.json';
-$billingsFilePath = 'billings/billing.json';
-$subscriptionsFilePath = 'subscriptions/subscriptions.json';
-$customersFilePath = 'customer/customers.json';
-$paketFilePath = 'pakets/paket.json';
+$paymentsFilePath = '../payments/payments.json';
+$billingsFilePath = '../billings/billing.json';
+$subscriptionsFilePath = '../subscriptions/subscriptions.json';
+$customersFilePath = '../customers/customers.json';
+$paketFilePath = '../pakets/paket.json';
 
 // Load the payments data
 $paymentsData = json_decode(file_get_contents($paymentsFilePath), true)['payments'];

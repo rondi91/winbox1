@@ -4,7 +4,7 @@ require '../config.php';          // Load MikroTik configuration
 
 // Function to load customer data from the JSON file
 function loadCustomers() {
-    $customerFile = '../customer/customers.json';
+    $customerFile = '../customers/customers.json';
     if (file_exists($customerFile)) {
         $jsonData = file_get_contents($customerFile);
         return json_decode($jsonData, true);
@@ -25,6 +25,7 @@ function loadBillings() {
 // Load existing data
 $customers = loadCustomers();
 $billings = loadBillings();
+
 
 // Get filters from the request
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';

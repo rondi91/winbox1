@@ -10,7 +10,7 @@ require '../config.php';          // Load MikroTik configuration
 
 // Function to load customer data from the JSON file
 function loadCustomers() {
-    $customerFile = '../customer/customers.json';
+    $customerFile = '../customers/customers.json';
     if (file_exists($customerFile)) {
         $jsonData = file_get_contents($customerFile);
         return json_decode($jsonData, true);
@@ -273,6 +273,7 @@ if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
                         status: status
                     },
                     success: function(response){
+                        console.log(response); // Log the response to the console
                         // Clear previous results
                         $('#billingResults').empty();
 

@@ -5,3 +5,7 @@ $mikrotikConfig = [
     'user' => 'rondi',         // Replace with your Mikrotik username
     'pass' => '21184662',      // Replace with your Mikrotik password
 ];
+
+// config.php
+// define('BASE_PATH', __DIR__ . '/'); // This sets the base path to the root of your project
+
