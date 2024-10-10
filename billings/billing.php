@@ -115,8 +115,44 @@ if (isset($_GET['report_month']) && isset($_GET['report_year'])) {
     <title>Billing Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery for AJAX -->
+    <style>
+        body {
+            display: flex;
+        }
+        .sidebar {
+            min-width: 200px;
+            height: 100vh;
+            background-color: #f8f9fa;
+            padding: 15px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
+
+<div class="sidebar">
+        <h2>Menu</h2>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="../dashboard/dashboard.php">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../customers/customers.php">Customers</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../paket/paket.php">Packages</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../billings/billing.php">Billing</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="../payments/payments.php">Payments</a>
+            </li>
+        </ul>
+    </div>
     <div class="container mt-4">
         <h1 class="display-6 text-center">Billing Management</h1>
 
