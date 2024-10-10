@@ -11,6 +11,11 @@
     <div class="container mt-4">
         <h1 class="display-6 text-center">Payment Management</h1>
 
+
+        <?php if (isset($_GET['import_success']) && $_GET['import_success'] == 1): ?>
+    <div class="alert alert-success">Excel file imported successfully!</div>
+<?php endif; ?>
+
         <!-- Filter Form -->
         <div class="mb-4 row">
             <div class="col-md-3">
@@ -49,6 +54,18 @@
         <a href="export_payments_excel.php" class="btn btn-primary mb-4">Export to Excel</a>
          <!-- Export to PDF Button -->
         <a href="export_payments_pdf.php" class="btn btn-primary mb-4">Export to PDF</a>
+        <!-- Import Data Form -->
+<form action="import_payments.php" method="POST" enctype="multipart/form-data" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="file" name="excel_file" class="form-control" required accept=".xlsx, .xls">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Import Excel</button>
+        </div>
+    </div>
+</form>
+
                    
                 
         <!-- Add New Payment Button -->
