@@ -18,7 +18,7 @@
             </div>
             <div class="col-md-2">
                 <select class="form-select" id="filterMonth">
-                    <option value="">-- Select Month --</option>
+                    <option value="">All Months</option>
                     <?php for($m = 1; $m <= 12; $m++): ?>
                         <option value="<?php echo sprintf('%02d', $m); ?>">
                             <?php echo date('F', mktime(0, 0, 0, $m, 1)); ?>
@@ -28,7 +28,7 @@
             </div>
             <div class="col-md-2">
                 <select class="form-select" id="filterYear">
-                    <option value="">-- Select Year --</option>
+                    <option value="">All Years</option>
                     <?php for($y = date('Y') - 5; $y <= date('Y'); $y++): ?>
                         <option value="<?php echo $y; ?>"><?php echo $y; ?></option>
                     <?php endfor; ?>
@@ -36,14 +36,21 @@
             </div>
             <div class="col-md-2">
                 <select class="form-select" id="filterPaymentMethod">
-                    <option value="">-- Select Payment Method --</option>
+                    <option value="">All Methods</option>
                     <option value="cash">Cash</option>
                     <option value="credit_card">Credit Card</option>
                     <option value="bank_transfer">Bank Transfer</option>
                 </select>
             </div>
         </div>
-
+        <!-- Export Data Button -->
+        <button id="exportCSV" class="btn btn-primary">Export to CSV</button>
+        <!-- Export to Excel Button -->
+        <a href="export_payments_excel.php" class="btn btn-primary mb-4">Export to Excel</a>
+         <!-- Export to PDF Button -->
+        <a href="export_payments_pdf.php" class="btn btn-primary mb-4">Export to PDF</a>
+                   
+                
         <!-- Add New Payment Button -->
         <a href="add_payment.php" class="btn btn-success mb-4">Add New Payment</a>
 
@@ -62,29 +69,19 @@
                 </tr>
             </thead>
             <tbody id="paymentResults">
-                <!-- Results will be displayed here dynamically -->
+                <!-- Results will be dynamically filled in by JavaScript -->
             </tbody>
         </table>
     </div>
 
     <script>
         $(document).ready(function(){
-            // Load initial payment data for the current month and year
-            loadPayments();
-
-            // Trigger live search and filters
-            $('#liveSearch, #filterMonth, #filterYear, #filterPaymentMethod').on('change keyup', function(){
-                loadPayments();
-            });
-
-            // Function to load payments based on filters and search query
             function loadPayments() {
                 let search = $('#liveSearch').val();
                 let month = $('#filterMonth').val();
                 let year = $('#filterYear').val();
                 let paymentMethod = $('#filterPaymentMethod').val();
 
-                // AJAX request to live_search.php
                 $.ajax({
                     url: 'live_search.php',
                     type: 'GET',
@@ -95,13 +92,28 @@
                         payment_method: paymentMethod
                     },
                     success: function(response){
-                        // Populate the payment results table
                         $('#paymentResults').html(response);
                     }
                 });
             }
+
+            loadPayments(); // Initial load of data
+
+            $('#liveSearch, #filterMonth, #filterYear, #filterPaymentMethod').on('change keyup', function(){
+                loadPayments();
+            });
         });
-    </script>
+    
+
+    // <!-- export -->
+    
+    $(document).ready(function() {
+        $('#exportCSV').click(function() {
+            window.location.href = 'export_payments.php';
+        });
+    });
+</script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
