@@ -2,57 +2,57 @@
     "billings": [
         {
             "billing_id": 1,
-            "customer_id": 4,
-            "subscription_id": "1",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "customer_id": "4",
+            "subscription_id": 1,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "150000",
             "status": "paid"
         },
         {
             "billing_id": 2,
-            "customer_id": 3,
-            "subscription_id": "2",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "customer_id": "3",
+            "subscription_id": 2,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "150000",
             "status": "paid"
         },
         {
             "billing_id": 3,
-            "customer_id": 1,
-            "subscription_id": "3",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "customer_id": "1",
+            "subscription_id": 3,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "100000",
-            "status": "paid"
+            "status": "unpaid"
         },
         {
             "billing_id": 4,
-            "customer_id": 5,
-            "subscription_id": "4",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "customer_id": "5",
+            "subscription_id": 4,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "100000",
-            "status": "paid"
+            "status": "unpaid"
         },
         {
             "billing_id": 5,
             "customer_id": 6,
-            "subscription_id": "5",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "subscription_id": 5,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "150000",
-            "status": "paid"
+            "status": "unpaid"
         },
         {
             "billing_id": 6,
             "customer_id": 7,
-            "subscription_id": "6",
-            "billing_date": "2024-10-06",
-            "due_date": "2024-11-05",
+            "subscription_id": 6,
+            "billing_date": "2024-10-11",
+            "due_date": "2024-11-10",
             "amount": "200000",
-            "status": "paid"
+            "status": "unpaid"
         }
     ]
 }

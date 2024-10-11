@@ -45,6 +45,10 @@ function loadPackages() {
     }
     return ['packages' => []];
 }
+function savePayments($data) {
+    $paymentFile = 'payments.json';
+    file_put_contents($paymentFile, json_encode($data, JSON_PRETTY_PRINT));
+}
 
 // Load the data
 $payments = loadPayments();
@@ -58,6 +62,21 @@ $searchQuery = isset($_GET['search']) ? strtolower($_GET['search']) : '';
 $filterMonth = isset($_GET['month']) ? $_GET['month'] : '';
 $filterYear = isset($_GET['year']) ? $_GET['year'] : '';
 $filterPaymentMethod = isset($_GET['payment_method']) ? $_GET['payment_method'] : '';
+
+// Check for deletion request
+if (isset($_GET['delete_id'])) {
+    $deleteId = $_GET['delete_id'];
+    $payments['payments'] = array_filter($payments['payments'], function($payment) use ($deleteId) {
+        return $payment['payment_id'] != $deleteId;
+    });
+
+    // Save the updated payments list
+    savePayments($payments);
+    header('Location: payments.php');
+        exit;
+    
+}
+
 
 // Filter payments based on criteria
 $filteredPayments = array_filter($payments['payments'], function($payment) use ($searchQuery, $filterMonth, $filterYear, $filterPaymentMethod, $billings, $customers) {
@@ -132,7 +151,7 @@ if (count($filteredPayments) > 0) {
                         <td>{$amount}</td>
                         <td>{$paymentMethod}</td>
                         <td>
-                            <a href='payments.php?delete_id={$paymentId}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this payment record?\");'>Delete</a>
+                            <a href='live_search.php?delete_id={$paymentId}' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this payment record?\");'>Delete</a>
                         </td>
                     </tr>";
     }

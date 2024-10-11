@@ -10,7 +10,7 @@ function loadBillings() {
 }
 
 function loadCustomers() {
-    $customerFile = '../customer/customers.json';
+    $customerFile = '../customers/customers.json';
     if (file_exists($customerFile)) {
         $jsonData = file_get_contents($customerFile);
         return json_decode($jsonData, true);
@@ -24,6 +24,7 @@ $billingId = isset($_GET['billing_id']) ? $_GET['billing_id'] : null;
 // Load data
 $billings = loadBillings();
 $customers = loadCustomers();
+
 
 // Find the billing record by ID
 $billing = null;
