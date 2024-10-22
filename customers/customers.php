@@ -95,13 +95,10 @@ if ($searchTerm !== '') {
     <div class="main-content">
     <h1 class="display-6 text-center">Customer List</h1>
 
-    <!-- Search Form -->
-    <form method="GET" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search by Name, Email, or Phone" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-            <button class="btn btn-outline-primary" type="submit">Search</button>
-        </div>
-    </form>
+    <!-- Search Form (now without form submit) -->
+    <div class="input-group mb-3">
+        <input type="text" id="search" class="form-control" placeholder="Search by Name, Email, or Phone">
+    </div>
 
     <table class="table table-bordered table-striped">
         <thead>
@@ -115,31 +112,32 @@ if ($searchTerm !== '') {
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
-            <?php if (count($customerData['customers']) > 0): ?>
-                <?php foreach ($customerData['customers'] as $customer): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($customer['id']); ?></td>
-                        <td><?php echo htmlspecialchars($customer['name']); ?></td>
-                        <td><?php echo htmlspecialchars($customer['email']); ?></td>
-                        <td><?php echo htmlspecialchars($customer['phone']); ?></td>
-                        <td><?php echo htmlspecialchars($customer['address']); ?></td>
-                        <td><?php echo isset($pppoeMap[$customer['pppoe_id']]) ? htmlspecialchars($pppoeMap[$customer['pppoe_id']]) : 'N/A'; ?></td>
-                        <td>
-                            <a href="edit_customer.php?id=<?php echo $customer['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
-                            <a href="delete_customer.php?id=<?php echo $customer['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="7" class="text-center">No customers found.</td>
-                </tr>
-            <?php endif; ?>
+        <tbody id="customer-list">
+            <!-- Customer data will be dynamically loaded here -->
         </tbody>
     </table>
 </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        
+    document.getElementById('search').addEventListener('input', function() {
+        const searchQuery = this.value;
+
+        // Send AJAX request to fetch filtered customers
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'search_customers.php?search=' + encodeURIComponent(searchQuery), true);
+        xhr.onload = function() {
+            if (this.status === 200) {
+                // Update the table body with the received data
+                document.getElementById('customer-list').innerHTML = this.responseText;
+            }
+        };
+        xhr.send();
+    });
+</script>
+
+    </script>
 </body>
 </html>
