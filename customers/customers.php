@@ -113,8 +113,22 @@ if ($searchTerm !== '') {
             </tr>
         </thead>
         <tbody id="customer-list">
-            <!-- Customer data will be dynamically loaded here -->
-        </tbody>
+    <?php foreach ($customerData['customers'] as $customer): ?>
+        <tr>
+            <td><?= $customer['id'] ?></td>
+            <td><?= $customer['name'] ?></td>
+            <td><?= $customer['email'] ?></td>
+            <td><?= $customer['phone'] ?></td>
+            <td><?= $customer['address'] ?></td>
+            <td><?= isset($pppoeMap[$customer['pppoe_id']]) ? $pppoeMap[$customer['pppoe_id']] : 'N/A' ?></td>
+            <td>
+                <a href="edit_customer.php?id=<?= $customer['id'] ?>" class="btn btn-primary btn-sm">Edit</a>
+                <a href="delete_customer.php?id=<?= $customer['id'] ?>" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+
     </table>
 </div>
 
