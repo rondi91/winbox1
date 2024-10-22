@@ -32,6 +32,6 @@ if ($customerId !== null) {
 }
 
 // Redirect back to the customer list after deletion
-header('Location: display_customers.php');
+header('Location: customers.php');
 exit;
 ?>

@@ -99,6 +99,25 @@ if ($searchTerm !== '') {
     <div class="input-group mb-3">
         <input type="text" id="search" class="form-control" placeholder="Search by Name, Email, or Phone">
     </div>
+    <div class="mb-3">
+    <h4>Import Customers from Excel</h4>
+    <form id="importExcelForm" enctype="multipart/form-data" action="import_customers_excel.php" method="POST">
+        <div class="input-group mb-3">
+            <input type="file" name="excelFile" class="form-control" id="excelFile" accept=".xlsx, .xls">
+            <button class="btn btn-primary" type="submit">Upload Excel</button>
+        </div>
+    </form>
+</div>
+
+<div class="mb-3">
+    <a href="export_customers.php" class="btn btn-success">Export to Excel</a>
+</div>
+
+<!-- notificaation -->
+<?php if (isset($_GET['import']) && $_GET['import'] === 'success'): ?>
+    <div class="alert alert-success">Customers imported successfully from Excel!</div>
+<?php endif; ?>
+
 
     <table class="table table-bordered table-striped">
         <thead>

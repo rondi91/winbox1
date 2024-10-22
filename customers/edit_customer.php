@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="display_customers.php" class="btn btn-secondary">Cancel</a>
+            <a href="customers.php" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 
