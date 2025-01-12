@@ -11,7 +11,7 @@ function loadSubscriptions() {
 
 // Function to load customer data from the JSON file
 function loadCustomers() {
-    $customerFile = '../customer/customers.json';
+    $customerFile = '../customers/customers.json';
     if (file_exists($customerFile)) {
         $jsonData = file_get_contents($customerFile);
         return json_decode($jsonData, true);

@@ -2,50 +2,26 @@
     "subscriptions": [
         {
             "id": 1,
-            "customer_id": "4",
-            "paket_id": "2",
-            "start_date": "2024-10-05",
-            "end_date": "2024-10-05",
+            "customer_id": "67176eaddd7ca",
+            "paket_id": "1",
+            "start_date": "2024-10-22",
+            "end_date": "2024-11-22",
             "status": "active"
         },
         {
             "id": 2,
-            "customer_id": "3",
-            "paket_id": "4",
-            "start_date": "2024-10-05",
-            "end_date": "2024-10-05",
+            "customer_id": "67176eaddd7d6",
+            "paket_id": "1",
+            "start_date": "2024-10-22",
+            "end_date": "2024-11-22",
             "status": "active"
         },
         {
             "id": 3,
-            "customer_id": "1",
-            "paket_id": "1",
-            "start_date": "2024-10-05",
-            "end_date": "2024-11-05",
-            "status": "active"
-        },
-        {
-            "id": 4,
-            "customer_id": "5",
-            "paket_id": "1",
-            "start_date": "2024-10-05",
-            "end_date": "2024-11-05",
-            "status": "active"
-        },
-        {
-            "id": 5,
-            "customer_id": 6,
+            "customer_id": "67176eaddd7e0",
             "paket_id": "2",
-            "start_date": "2024-10-05",
-            "end_date": "2024-11-05",
-            "status": "active"
-        },
-        {
-            "id": 6,
-            "customer_id": 7,
-            "paket_id": "3",
-            "start_date": "2024-10-05",
-            "end_date": "2024-11-05",
+            "start_date": "2024-10-22",
+            "end_date": "2024-11-22",
             "status": "active"
         }
     ]

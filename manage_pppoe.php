@@ -125,6 +125,16 @@ $start = ($page - 1) * $limit;
 // Slice the array to get only the users for the current page
 $usersForCurrentPage = array_slice($allUsers, $start, $limit);
 
+// Count users by profile
+$usersByProfile = [];
+foreach ($allUsers as $user) {
+    $profileName = isset($user['profile']) ? $user['profile'] : 'Unknown';
+    if (!isset($usersByProfile[$profileName])) {
+        $usersByProfile[$profileName] = 0;
+    }
+    $usersByProfile[$profileName]++;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -135,7 +145,7 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
     <title>Manage PPPoE Users</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Include Chart.js -->
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- CSS to adjust the size -->
 <style>
     #downloadGauge, #uploadGauge {
@@ -154,6 +164,28 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
             <p>Total Secrets (Users): <strong><?php echo $totalSecrets; ?></strong></p>
             <p>Total Active Users: <strong><?php echo $totalActiveUsers; ?></strong></p>
             <p>Total Inactive Users: <strong><?php echo $totalInactiveUsers; ?></strong></p>
+
+            <h4>Users by Profile:</h4>
+            <!-- Table View -->
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Total Users</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($usersByProfile as $profile => $count): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($profile); ?></td>
+                            <td><?php echo $count; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <!-- Chart View -->
+            <canvas id="profileChart" width="400" height="200"></canvas>
         </div>
 
         <!-- Tab Navigation -->
@@ -357,6 +389,45 @@ $usersForCurrentPage = array_slice($allUsers, $start, $limit);
 
 
     </div>
+    <script>
+        // Prepare data for the chart
+        const profileLabels = <?php echo json_encode(array_keys($usersByProfile), JSON_HEX_TAG); ?>;
+        const profileData = <?php echo json_encode(array_values($usersByProfile), JSON_HEX_TAG); ?>;
+
+        // Ensure data is not empty
+        if (profileLabels.length > 0 && profileData.length > 0) {
+            const ctx = document.getElementById('profileChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: profileLabels,
+                    datasets: [{
+                        label: 'Users by Profile',
+                        data: profileData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('profileChart').outerHTML = '<p>No data available for the chart.</p>';
+        }
+    </script>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

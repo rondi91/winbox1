@@ -4,7 +4,7 @@ require '../config.php';          // Load MikroTik configuration
 
 // Function to load customer data from the JSON file
 function loadCustomers() {
-    $customerFile = '../customer/customers.json';
+    $customerFile = '../customers/customers.json';
     if (file_exists($customerFile)) {
         $jsonData = file_get_contents($customerFile);
         return json_decode($jsonData, true);
@@ -43,6 +43,10 @@ $customers = loadCustomers();
 $pakets = loadPakets();
 $subscriptions = loadSubscriptions();
 
+
+// var_dump($customers);
+// die();
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customerId = $_POST['customer_id'];
@@ -76,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         saveSubscriptions($subscriptions);
 
         // Redirect to the subscription list page
-        header('Location: display_subscriptions.php');
+        header('Location: subscriptions.php');
         exit;
     }
 }
@@ -139,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <button type="submit" class="btn btn-primary">Add Subscription</button>
-            <a href="display_subscriptions.php" class="btn btn-secondary">Cancel</a>
+            <a href="subscriptions.php" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
